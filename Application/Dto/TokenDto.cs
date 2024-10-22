@@ -1,4 +1,4 @@
-namespace Api.Dto;
+namespace Application.Dto;
 
 public record TokenDto(
     string token
