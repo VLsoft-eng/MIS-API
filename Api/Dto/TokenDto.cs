@@ -1,6 +1,5 @@
 namespace Api.Dto;
 
-public record TokenDto
-{
-    public string token { get; set; }
-};
+public record TokenDto(
+    string token
+    );
