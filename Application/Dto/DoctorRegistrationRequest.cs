@@ -3,7 +3,7 @@ using Domain.Enums;
 
 namespace Application.Dto;
 
-public record DoctorEditRequest(
+public record DoctorRegistrationRequest(
     string name,
     
     string password,
@@ -17,4 +17,4 @@ public record DoctorEditRequest(
     string phone,
     
     Guid speciality
-    );
+);
