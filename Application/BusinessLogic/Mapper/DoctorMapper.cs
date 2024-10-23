@@ -1,5 +1,5 @@
 using Application.Dto;
-using Application.Abstractions;
+using Application.Abstractions.Repository;
 using Domain;
 
 namespace Application.BusinessLogic.Mapper;
@@ -13,7 +13,7 @@ public class DoctorMapper
         _specialityRepository = specialityRepository;
     }
     
-    public DoctorDto toDto(Doctor doctor)
+    public DoctorDto ToDto(Doctor doctor)
     { 
         return new DoctorDto(
             doctor.id,
