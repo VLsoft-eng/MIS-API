@@ -1,6 +1,8 @@
+using Application.Abstractions.Auth;
+
 namespace Infrastructure.Auth;
 
-public class PasswordHasher
+public class PasswordHasher : IPasswordHasher
 {
     public string Generate(string password)
     {

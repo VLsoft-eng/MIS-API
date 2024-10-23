@@ -16,6 +16,7 @@ public class DoctorService : IDoctorService
     private readonly IJwtProvider _jwtProvider;
     private readonly DoctorRegistrationValidator _registrationValidator;
     private readonly DoctorLoginValidator _loginValidator;
+    private readonly DoctorEditValidator _doctorEditValidator;
     private readonly DoctorMapper _doctorMapper;
 
     public DoctorService(
@@ -24,7 +25,8 @@ public class DoctorService : IDoctorService
         IJwtProvider jwtProvider,
         DoctorRegistrationValidator registrationValidator,
         DoctorMapper doctorMapper,
-        DoctorLoginValidator loginValidator
+        DoctorLoginValidator loginValidator,
+        DoctorEditValidator doctorEditValidator
     )
     {
         _doctorRepository = doctorRepository;
@@ -33,6 +35,7 @@ public class DoctorService : IDoctorService
         _registrationValidator = registrationValidator;
         _doctorMapper = doctorMapper;
         _loginValidator = loginValidator;
+        _doctorEditValidator = doctorEditValidator;
     }
 
     public async Task<TokenDto> Register(DoctorRegistrationRequest request)
@@ -101,7 +104,10 @@ public class DoctorService : IDoctorService
         {
             throw new Exception();
         }
+
+        var validation = await _doctorEditValidator.ValidateAsync(request);
         
         _doctorMapper.UpdateDoctorEntity(doctor, request);
+        await _doctorRepository.Update(doctor);
     }
 }
