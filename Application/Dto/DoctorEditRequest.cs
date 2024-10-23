@@ -4,17 +4,13 @@ using Domain.Enums;
 namespace Application.Dto;
 
 public record DoctorEditRequest(
-    string name,
-    
-    string password,
-    
     string email,
+    
+    string name,
     
     DateTime birthday,
     
     Gender gender,
     
-    string phone,
-    
-    Guid speciality
+    string phone
     );
