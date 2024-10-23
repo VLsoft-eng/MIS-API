@@ -4,7 +4,7 @@ namespace Application.Abstractions;
 
 public interface ISpecialityRepository
 {
-    Task CreateAsync(Speciality speciality);
-    Task<Speciality?> GetByIdAsync(Guid id);
-    Task<IEnumerable<Speciality>> GetByNameAsync(string name, int page = 1, int size = 5);
+    Task Create(Speciality speciality);
+    Task<Speciality?> GetById(Guid id);
+    Task<IEnumerable<Speciality>> GetByNameAndParams(string name, int page = 1, int size = 5);
 }

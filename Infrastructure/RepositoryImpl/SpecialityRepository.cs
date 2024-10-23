@@ -1,9 +1,10 @@
+using Application.Abstractions;
 using Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.RepositoryImpl;
 
-public class SpecialityRepository
+public class SpecialityRepository : ISpecialityRepository
 {
     private readonly ApplicationDbContext _context;
 
