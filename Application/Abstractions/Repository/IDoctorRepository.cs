@@ -1,6 +1,6 @@
 using Domain;
 
-namespace Application.Abstractions;
+namespace Application.Abstractions.Repository;
 
 public interface IDoctorRepository
 {
