@@ -4,7 +4,8 @@ namespace Application.Abstractions;
 
 public interface IDoctorRepository
 {
-    public void Create(Doctor doctor);
-    public void Update(Doctor doctor);
-    public Doctor? GetById(Guid id);
+    public Task Create(Doctor doctor);
+    public Task Update(Doctor doctor);
+    public Task <Doctor?>GetById(Guid id);
+    public Task<Doctor?> GetByEmail(string email);
 }

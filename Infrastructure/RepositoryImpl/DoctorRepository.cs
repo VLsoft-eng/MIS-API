@@ -6,26 +6,33 @@ namespace Infrastructure.RepositoryImpl;
 
 public class DoctorRepository : IDoctorRepository
 {
-    private ApplicationDbContext _context;
+    private readonly ApplicationDbContext _context;
 
     public DoctorRepository(ApplicationDbContext context)
     {
         _context = context;
     }
 
-    public void Create(Doctor doctor)
+    public async Task Create(Doctor doctor)
     {
-        _context.Doctors.Add(doctor);
+        await _context.Doctors.AddAsync(doctor);
+        await _context.SaveChangesAsync();
     }
 
-    public void Update(Doctor doctor)
+    public async Task Update(Doctor doctor)
     {
         _context.Entry(doctor).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
     }
 
-    public Doctor? GetById(Guid id)
+    public async Task<Doctor?> GetById(Guid id)
     {
-        return _context.Doctors.Find(id);
+        return await _context.Doctors.FindAsync(id);
     }
 
+    public async Task<Doctor?> GetByEmail(string email)
+    {
+        return await _context.Doctors
+            .FirstOrDefaultAsync(d => d.email == email);
+    }
 }
