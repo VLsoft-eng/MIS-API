@@ -2,8 +2,6 @@ using Application.Abstractions.Auth;
 using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
 using Application.Abstractions.Service;
-using Application.BusinessLogic.Mapper;
-using Application.BusinessLogic.Validation;
 using Application.Dto;
 using Domain;
 using FluentValidation;
@@ -20,6 +18,8 @@ public class DoctorService : IDoctorService
     private readonly IValidator<DoctorLoginRequest> _loginValidator;
     private readonly IValidator<DoctorEditRequest> _doctorEditValidator;
     private readonly IDoctorMapper _doctorMapper;
+    private readonly ITokenRepository _tokenRepository;
+    private readonly ITokenMapper _tokenMapper;
 
     public DoctorService(
         IDoctorRepository doctorRepository,
@@ -28,7 +28,9 @@ public class DoctorService : IDoctorService
         IValidator<DoctorRegistrationRequest> registrationValidator,
         IValidator<DoctorLoginRequest> loginValidator,
         IValidator<DoctorEditRequest> doctorEditValidator,
-        IDoctorMapper doctorMapper
+        IDoctorMapper doctorMapper,
+        ITokenRepository tokenRepository,
+        ITokenMapper tokenMapper
     )
     {
         _doctorRepository = doctorRepository;
@@ -38,6 +40,8 @@ public class DoctorService : IDoctorService
         _loginValidator = loginValidator;
         _doctorEditValidator = doctorEditValidator;
         _doctorMapper = doctorMapper;
+        _tokenRepository = tokenRepository;
+        _tokenMapper = tokenMapper;
     }
 
     public async Task<TokenDto> Register(DoctorRegistrationRequest request)
@@ -87,7 +91,7 @@ public class DoctorService : IDoctorService
         return tokenDto;
     }
 
-    public async Task<DoctorDto> getDoctorInfo(Guid id)
+    public async Task<DoctorDto> GetDoctorInfo(Guid id)
     {
         var doctor = await _doctorRepository.GetById(id);
         if (doctor == null)
@@ -99,7 +103,7 @@ public class DoctorService : IDoctorService
         return dto;
     }
 
-    public async Task editUserProfile(Guid id, DoctorEditRequest request)
+    public async Task EditUserProfile(Guid id, DoctorEditRequest request)
     {
         var doctor = await _doctorRepository.GetById(id);
         if (doctor == null)
@@ -111,5 +115,18 @@ public class DoctorService : IDoctorService
         
         _doctorMapper.UpdateDoctorEntity(doctor, request);
         await _doctorRepository.Update(doctor);
+    }
+
+    public async Task Logout(Guid tokenId, string tokenValue)
+    {
+        var token = await _tokenRepository.GetById(tokenId);
+
+        if (token != null)
+        {
+            throw new Exception();
+        }
+
+        Token bannedToken = _tokenMapper.toEntity (tokenId, tokenValue);
+        await _tokenRepository.Add(bannedToken);
     }
 }
