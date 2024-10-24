@@ -5,7 +5,7 @@ namespace Application.BusinessLogic.Validation;
 
 public class DoctorLoginValidator : AbstractValidator<DoctorLoginRequest>
 {
-    DoctorLoginValidator()
+    public DoctorLoginValidator()
     {
         RuleFor(doctor => doctor.email)
             .NotEmpty().WithMessage("Email is required")

@@ -1,10 +1,11 @@
+using Application.Abstractions.Mapper;
 using Application.Dto;
 using Application.Abstractions.Repository;
 using Domain;
 
 namespace Application.BusinessLogic.Mapper;
 
-public class DoctorMapper
+public class DoctorMapper : IDoctorMapper
 {
     private readonly ISpecialityRepository _specialityRepository;
 
@@ -41,6 +42,7 @@ public class DoctorMapper
             createTime = DateTime.UtcNow,
             name = request.name,
             birthday = request.birthday,
+            hashedPassword = request.password,
             gender = request.gender,
             email = request.email,
             phone = request.phone,

@@ -1,11 +1,13 @@
-using System.ComponentModel.DataAnnotations;
 using Application.Abstractions.Auth;
+using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
 using Application.Abstractions.Service;
 using Application.BusinessLogic.Mapper;
 using Application.BusinessLogic.Validation;
 using Application.Dto;
 using Domain;
+using FluentValidation;
+using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 namespace Application.BusinessLogic.Service;
 
@@ -14,28 +16,28 @@ public class DoctorService : IDoctorService
     private readonly IDoctorRepository _doctorRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtProvider _jwtProvider;
-    private readonly DoctorRegistrationValidator _registrationValidator;
-    private readonly DoctorLoginValidator _loginValidator;
-    private readonly DoctorEditValidator _doctorEditValidator;
-    private readonly DoctorMapper _doctorMapper;
+    private readonly IValidator<DoctorRegistrationRequest> _registrationValidator;
+    private readonly IValidator<DoctorLoginRequest> _loginValidator;
+    private readonly IValidator<DoctorEditRequest> _doctorEditValidator;
+    private readonly IDoctorMapper _doctorMapper;
 
     public DoctorService(
         IDoctorRepository doctorRepository,
         IPasswordHasher passwordHasher,
         IJwtProvider jwtProvider,
-        DoctorRegistrationValidator registrationValidator,
-        DoctorMapper doctorMapper,
-        DoctorLoginValidator loginValidator,
-        DoctorEditValidator doctorEditValidator
+        IValidator<DoctorRegistrationRequest> registrationValidator,
+        IValidator<DoctorLoginRequest> loginValidator,
+        IValidator<DoctorEditRequest> doctorEditValidator,
+        IDoctorMapper doctorMapper
     )
     {
         _doctorRepository = doctorRepository;
         _passwordHasher = passwordHasher;
         _jwtProvider = jwtProvider;
         _registrationValidator = registrationValidator;
-        _doctorMapper = doctorMapper;
         _loginValidator = loginValidator;
         _doctorEditValidator = doctorEditValidator;
+        _doctorMapper = doctorMapper;
     }
 
     public async Task<TokenDto> Register(DoctorRegistrationRequest request)

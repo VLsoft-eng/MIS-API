@@ -11,8 +11,7 @@ public class Doctor
 {
     [Key]
     [Column("id")]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public Guid id { get; set; }
+    public Guid id  { get; set; }
     
     [Column("create_time")]
     public DateTime createTime { get; set; }
@@ -36,5 +35,6 @@ public class Doctor
     [Column("phone")]
     public string phone { get; set; }
     
+    [ForeignKey("specialityId")]
     public Speciality speciality { get; set; }
 }
