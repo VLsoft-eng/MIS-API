@@ -27,6 +27,8 @@ builder.Services.AddScoped<IValidator<DoctorLoginRequest>, DoctorLoginValidator>
 builder.Services.AddScoped<IValidator<DoctorRegistrationRequest>, DoctorRegistrationValidator>();
 builder.Services.AddScoped<IValidator<DoctorEditRequest>, DoctorEditValidator>();
 builder.Services.AddScoped<IDoctorMapper, DoctorMapper>();
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<ITokenMapper, TokenMapper>();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
 
 
