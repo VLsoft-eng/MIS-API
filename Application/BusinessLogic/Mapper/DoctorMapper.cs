@@ -2,6 +2,7 @@ using Application.Abstractions.Mapper;
 using Application.Dto;
 using Application.Abstractions.Repository;
 using Domain;
+using Application.Exceptions;
 
 namespace Application.BusinessLogic.Mapper;
 
@@ -33,7 +34,7 @@ public class DoctorMapper : IDoctorMapper
         
         if (speciality == null)
         {
-            throw new Exception();
+            throw new SpecialityNotFoundException();
         }
 
         return new Doctor

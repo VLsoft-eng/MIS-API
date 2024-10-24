@@ -3,6 +3,7 @@ using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
 using Application.Abstractions.Service;
 using Application.Dto;
+using Application.Exceptions;
 using Domain;
 using FluentValidation;
 using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
@@ -50,9 +51,15 @@ public class DoctorService : IDoctorService
 
         if (!validation.IsValid)
         {
-            throw new ValidationException();
+            throw new ValidationException(validation.Errors[0].ToString());
         }
 
+        var existingDoctor = await _doctorRepository.GetByEmail(request.email);
+
+        if (existingDoctor != null)
+        {
+            throw new EmailAlreadyUsedException();
+        }
         var doctor = await _doctorMapper.ToEntity(request);
         doctor.hashedPassword = _passwordHasher.Generate(doctor.hashedPassword);
 
@@ -67,22 +74,21 @@ public class DoctorService : IDoctorService
     public async Task<TokenDto> Login(DoctorLoginRequest request)
     {
         var validation = await _loginValidator.ValidateAsync(request);
-
         if (!validation.IsValid)
         {
-            throw new ValidationException();
+            throw new ValidationException(validation.Errors[0].ToString());
         }
 
         var doctor = await _doctorRepository.GetByEmail(request.email);
         if (doctor == null)
         {
-            throw new Exception();
+            throw new InvalidAuthCredentialsException();
         }
 
         var isPasswordEqual = _passwordHasher.Verify(request.password, doctor.hashedPassword);
         if (!isPasswordEqual)
         {
-            throw new Exception();
+            throw new InvalidAuthCredentialsException();
         }
 
         var token = _jwtProvider.GenerateToken(doctor);
@@ -96,7 +102,7 @@ public class DoctorService : IDoctorService
         var doctor = await _doctorRepository.GetById(id);
         if (doctor == null)
         {
-            throw new Exception();
+            throw new DoctorNotFoundException();
         }
 
         var dto = _doctorMapper.ToDto(doctor);
@@ -108,10 +114,14 @@ public class DoctorService : IDoctorService
         var doctor = await _doctorRepository.GetById(id);
         if (doctor == null)
         {
-            throw new Exception();
+            throw new DoctorNotFoundException();
         }
 
         var validation = await _doctorEditValidator.ValidateAsync(request);
+        if (!validation.IsValid)
+        {
+            throw new ValidationException(validation.Errors[0].ToString());
+        }
         
         _doctorMapper.UpdateDoctorEntity(doctor, request);
         await _doctorRepository.Update(doctor);
@@ -123,7 +133,7 @@ public class DoctorService : IDoctorService
 
         if (token != null)
         {
-            throw new Exception();
+            throw new AlreadyLogoutException();
         }
 
         Token bannedToken = _tokenMapper.toEntity (tokenId, tokenValue);
