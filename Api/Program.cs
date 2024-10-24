@@ -1,3 +1,4 @@
+using Api.Extensions;
 using Application.Abstractions.Auth;
 using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
@@ -11,6 +12,7 @@ using Infrastructure;
 using Infrastructure.Auth;
 using Infrastructure.RepositoryImpl;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,8 +35,11 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOpti
 
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddOptions<JwtOptions>().BindConfiguration("JwtOptions");
+var jwtOptions = builder.Services.BuildServiceProvider().GetRequiredService<IOptions<JwtOptions>>();
+
+builder.Services.AddApiAuthentication(jwtOptions);
 
 var app = builder.Build();
 
@@ -46,8 +51,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 app.Run();
