@@ -1,5 +1,6 @@
 using Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Infrastructure;
 
@@ -11,7 +12,7 @@ public sealed class ApplicationDbContext : DbContext
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
-        Database.EnsureCreated();
+      
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -23,5 +24,18 @@ public sealed class ApplicationDbContext : DbContext
         modelBuilder.Entity<Doctor>()
             .HasIndex(doctor => doctor.phone)
             .IsUnique();
+        
+        modelBuilder.Entity<Speciality>()
+            .Property(s => s.id)
+            .ValueGeneratedOnAdd();
+        
+        modelBuilder.Entity<Doctor>()
+            .Property(s => s.id)
+            .ValueGeneratedOnAdd();
+        
+        modelBuilder.Entity<Doctor>().ToTable("doctors");
+        modelBuilder.Entity<Speciality>().ToTable("specialities");
     }
+    
+
 }
