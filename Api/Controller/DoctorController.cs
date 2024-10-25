@@ -10,7 +10,7 @@ namespace Api.Controller;
 [Route("api/doctor/")]
 public class DoctorController : ControllerBase
 {
-    private IDoctorService _doctorService;
+    private readonly IDoctorService _doctorService;
 
     public DoctorController(IDoctorService doctorService)
     {
