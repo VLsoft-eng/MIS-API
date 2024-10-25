@@ -1,5 +1,6 @@
 using Api.Extensions;
 using Api.Middleware;
+using Application.Abstractions;
 using Application.Abstractions.Auth;
 using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
@@ -32,7 +33,10 @@ builder.Services.AddScoped<IValidator<DoctorEditRequest>, DoctorEditValidator>()
 builder.Services.AddScoped<IDoctorMapper, DoctorMapper>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<ITokenMapper, TokenMapper>();
+builder.Services.AddScoped<ISpecialityMapper, SpecialityMapper>();
+builder.Services.AddScoped<ISpecialityService, SpecialityService>();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
+
 
 
 builder.Services.AddControllers();
