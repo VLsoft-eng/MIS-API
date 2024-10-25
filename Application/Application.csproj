@@ -10,4 +10,11 @@
       <ProjectReference Include="..\Domain\Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+      <PackageReference Include="FluentValidation" Version="11.10.0" />
+      <PackageReference Include="FluentValidator" Version="2.0.4" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
+    </ItemGroup>
+
 </Project>

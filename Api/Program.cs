@@ -1,13 +1,49 @@
+using Api.Extensions;
+using Api.Middleware;
+using Application.Abstractions.Auth;
+using Application.Abstractions.Mapper;
+using Application.Abstractions.Repository;
+using Application.Abstractions.Service;
+using Application.BusinessLogic.Mapper;
+using Application.BusinessLogic.Service;
+using Application.BusinessLogic.Validation;
+using Application.Dto;
+using FluentValidation;
+using Infrastructure;
+using Infrastructure.Auth;
+using Infrastructure.RepositoryImpl;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+builder.Services.AddScoped<ISpecialityRepository, SpecialityRepository>();
+builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+builder.Services.AddScoped<IValidator<DoctorLoginRequest>, DoctorLoginValidator>();
+builder.Services.AddScoped<IValidator<DoctorRegistrationRequest>, DoctorRegistrationValidator>();
+builder.Services.AddScoped<IValidator<DoctorEditRequest>, DoctorEditValidator>();
+builder.Services.AddScoped<IDoctorMapper, DoctorMapper>();
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<ITokenMapper, TokenMapper>();
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
+
+
+builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
+builder.Services.AddOptions<JwtOptions>().BindConfiguration("JwtOptions");
+var jwtOptions = builder.Services.BuildServiceProvider().GetRequiredService<IOptions<JwtOptions>>();
+
+builder.Services.AddApiAuthentication(jwtOptions);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -15,30 +51,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionHandlerMiddleware>();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-    {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
-
+app.MapControllers();
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
