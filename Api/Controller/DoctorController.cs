@@ -3,7 +3,6 @@ using Application.Dto;
 using Microsoft.AspNetCore.Mvc;
 using Api.Extensions;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 
 namespace Api.Controller;
 
@@ -35,9 +34,8 @@ public class DoctorController : ControllerBase
         
         await _doctorService.Logout(tokenId, tokenValue);
     }
-
-    [Authorize]
-    [HttpPost]
+    
+    [HttpPost("login")]
     public async Task<ActionResult<TokenDto>> Login([FromBody] DoctorLoginRequest request)
     {
         return await _doctorService.Login(request);

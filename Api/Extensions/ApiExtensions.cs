@@ -38,7 +38,7 @@ public static class ApiExtensions
 
                         if (token != null)
                         {
-                            context.Fail("sorry");
+                            context.Fail("Token was banned.");
                         }
                     }
                 };

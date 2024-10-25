@@ -1,4 +1,5 @@
 using Api.Extensions;
+using Api.Middleware;
 using Application.Abstractions.Auth;
 using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
@@ -50,7 +51,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
