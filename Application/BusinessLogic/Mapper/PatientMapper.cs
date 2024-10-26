@@ -11,6 +11,7 @@ public class PatientMapper : IPatientMapper
         return new Patient
         {
             id = Guid.NewGuid(),
+            name = request.name,
             birtday = request.birthday,
             createTime = DateTime.UtcNow,
             gender = request.gender
