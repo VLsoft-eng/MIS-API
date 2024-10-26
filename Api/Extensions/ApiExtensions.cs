@@ -14,9 +14,12 @@ public static class ApiExtensions
 {
     public static void AddApiAuthentication(
         this IServiceCollection services, 
-        IOptions<JwtOptions> jwtOptions
+        IConfiguration configuration
        )
     {
+        var jwtOptions = new JwtOptions();
+        configuration.GetSection("JwtOptions").Bind(jwtOptions);
+        
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
@@ -26,7 +29,7 @@ public static class ApiExtensions
                     ValidateAudience = false,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey((Encoding.UTF8.GetBytes(jwtOptions.Value.SecretKey)))
+                    IssuerSigningKey = new SymmetricSecurityKey((Encoding.UTF8.GetBytes(jwtOptions.SecretKey)))
                 };
                 options.Events = new JwtBearerEvents
                 {
