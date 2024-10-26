@@ -33,6 +33,8 @@ builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<ITokenMapper, TokenMapper>();
 builder.Services.AddScoped<ISpecialityMapper, SpecialityMapper>();
 builder.Services.AddScoped<ISpecialityService, SpecialityService>();
+builder.Services.AddScoped<IIcdRepository, IcdRepository>();
+builder.Services.AddScoped<IIcdMapper, IcdMapper>();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
 
 builder.Services.AddControllers();
