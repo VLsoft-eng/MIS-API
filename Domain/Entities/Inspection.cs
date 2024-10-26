@@ -11,7 +11,6 @@ public class Inspection
     [Column("id")]
     public Guid id { get; set; }
     
-    [Key]
     [Column("date")]
     public DateTime date { get; set; }
     
@@ -32,6 +31,9 @@ public class Inspection
     
     [Column("death_date")]
     public DateTime? deathDate { get; set; }
+    
+    [ForeignKey("patient_id)")]
+    public Patient patient { get; set; }
     
     [ForeignKey("previous_inspection_id")]
     public Inspection? previousInspection { get; set; }
