@@ -1,6 +1,5 @@
 using Api.Extensions;
 using Api.Middleware;
-using Application.Abstractions;
 using Application.Abstractions.Auth;
 using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
@@ -14,7 +13,6 @@ using Infrastructure;
 using Infrastructure.Auth;
 using Infrastructure.RepositoryImpl;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,14 +35,11 @@ builder.Services.AddScoped<ISpecialityMapper, SpecialityMapper>();
 builder.Services.AddScoped<ISpecialityService, SpecialityService>();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
 
-
-
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
-builder.Services.AddOptions<JwtOptions>().BindConfiguration("JwtOptions");
-var jwtOptions = builder.Services.BuildServiceProvider().GetRequiredService<IOptions<JwtOptions>>();
 
-builder.Services.AddApiAuthentication(jwtOptions);
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
+builder.Services.AddApiAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
@@ -52,6 +47,21 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
+
+    try
+    {
+        IcdLoader.loadIcd(context);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error loading ICD data: {ex.Message}");
+    }
 }
 
 app.UseHttpsRedirection();
