@@ -3,7 +3,7 @@ namespace Application.Exceptions;
 public class InvalidAuthCredentialsException : Exception
 {
     public InvalidAuthCredentialsException()
-        : base("Invalid password or email.")
+        : base("Wrong password or email.")
     {
     }
 
