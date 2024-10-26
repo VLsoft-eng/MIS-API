@@ -56,7 +56,7 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        IcdLoader.loadIcd(context);
+        IcdLoader.LoadIcd(context);
     }
     catch (Exception ex)
     {
