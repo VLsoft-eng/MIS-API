@@ -2,6 +2,7 @@ using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
 using Application.Abstractions.Service;
 using Application.Dto;
+using Application.Exceptions;
 
 namespace Application.BusinessLogic.Service;
 
@@ -26,6 +27,11 @@ public class IcdService : IIcdService
 
     public async Task<Icd10SearchDto> GetByNameAndParams(string name, int page, int size)
     {
+        if (size <= 0 || page <= 0)
+        {
+            throw new InvalidPaginationParamsException();
+        }
+        
         var icds = await _icdRepository.GetByNameAndParams(name, page, size);
         var overAllIcdsWithName = await _icdRepository.GetCountByName(name);
         var totalPages = (int)Math.Ceiling((double)overAllIcdsWithName / size);
