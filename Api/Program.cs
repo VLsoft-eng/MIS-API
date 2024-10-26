@@ -39,6 +39,7 @@ builder.Services.AddScoped<IIcdMapper, IcdMapper>();
 builder.Services.AddScoped<IIcdService, IcdService>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientMapper, PatientMapper>();
+builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
 
 builder.Services.AddControllers();

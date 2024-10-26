@@ -20,5 +20,5 @@ public class Patient
     public DateTime birtday { get; set; }
 
     [Column("gender")]
-    private Gender gender { get; set; }
+    public Gender gender { get; set; }
 }
