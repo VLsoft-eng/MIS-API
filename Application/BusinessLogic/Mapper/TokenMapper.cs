@@ -5,7 +5,7 @@ namespace Application.BusinessLogic.Mapper;
 
 public class TokenMapper : ITokenMapper
 {
-    public Token toEntity(Guid id ,string token)
+    public Token ToEntity(Guid id ,string token)
     {
         return new Token
         {

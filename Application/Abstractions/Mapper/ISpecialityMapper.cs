@@ -5,5 +5,5 @@ namespace Application.Abstractions.Mapper;
 
 public interface ISpecialityMapper
 {
-    List<SpecialityDto> toDto(List<Speciality> specialities);
+    List<SpecialityDto> ToDto(List<Speciality> specialities);
 }

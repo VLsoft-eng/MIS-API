@@ -22,7 +22,7 @@ public class SpecialityService : ISpecialityService
         var overAllSpecialitiesWithName = await _specialityRepository.GetCountByName(name);
         var totalPages = (int)Math.Ceiling((double)overAllSpecialitiesWithName / size);
 
-        var specialitiesDtos = _specialityMapper.toDto(specialities);
+        var specialitiesDtos = _specialityMapper.ToDto(specialities);
         var pageInfoDto = new PageInfoDto(size, totalPages, page);
 
         return  new SpecialitiesPagedListDto(specialitiesDtos, pageInfoDto);

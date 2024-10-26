@@ -6,7 +6,7 @@ namespace Application.BusinessLogic.Mapper;
 
 public class SpecialityMapper : ISpecialityMapper
 {
-    public List<SpecialityDto> toDto(List<Speciality> specialities)
+    public List<SpecialityDto> ToDto(List<Speciality> specialities)
     {
         var specialitiesDtos = specialities
             .Select(s => new SpecialityDto(
