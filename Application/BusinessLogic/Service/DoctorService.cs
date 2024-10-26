@@ -136,7 +136,7 @@ public class DoctorService : IDoctorService
             throw new AlreadyLogoutException();
         }
 
-        Token bannedToken = _tokenMapper.toEntity (tokenId, tokenValue);
+        Token bannedToken = _tokenMapper.ToEntity (tokenId, tokenValue);
         await _tokenRepository.Add(bannedToken);
     }
 }
