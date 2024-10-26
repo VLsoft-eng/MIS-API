@@ -22,31 +22,43 @@ public class ExceptionHandlerMiddleware
         catch (ValidationException e)
         {
             var error = new ErrorResponse(StatusCodes.Status400BadRequest, e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             await httpContext.Response.WriteAsJsonAsync(error);
         }
         catch (AlreadyLogoutException e)
         {
             var error = new ErrorResponse(StatusCodes.Status400BadRequest, e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             await httpContext.Response.WriteAsJsonAsync(error);
         }
         catch (DoctorNotFoundException e)
         {
             var error = new ErrorResponse(StatusCodes.Status404NotFound, e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             await httpContext.Response.WriteAsJsonAsync(error);
         }
         catch (EmailAlreadyUsedException e)
         {
             var error = new ErrorResponse(StatusCodes.Status400BadRequest, e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             await httpContext.Response.WriteAsJsonAsync(error);
         }
         catch (InvalidAuthCredentialsException e)
         {
             var error = new ErrorResponse(StatusCodes.Status400BadRequest, e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             await httpContext.Response.WriteAsJsonAsync(error);
         }
         catch (SpecialityNotFoundException e)
         {
             var error = new ErrorResponse(StatusCodes.Status404NotFound, e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+            await httpContext.Response.WriteAsJsonAsync(error);
+        }
+        catch (InvalidPaginationParamsException e)
+        {
+            var error = new ErrorResponse(StatusCodes.Status400BadRequest, e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             await httpContext.Response.WriteAsJsonAsync(error);
         }
     }
