@@ -18,7 +18,7 @@ public class PatientRepository : IPatientRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Patient?> Get(Guid id)
+    public async Task<Patient?> GetById(Guid id)
     {
         return await _context.Patients.FindAsync(id);
     }
