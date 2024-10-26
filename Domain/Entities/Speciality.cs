@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain;
 
-[Table("specialities")]
+[Table("speciality")]
 public class Speciality
 {
     [Key]

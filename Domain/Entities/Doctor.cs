@@ -6,7 +6,7 @@ using Domain.Enums;
 
 namespace Domain;
 
-[Table("doctors")]
+[Table("doctor")]
 public class Doctor
 {
     [Key]
@@ -35,6 +35,6 @@ public class Doctor
     [Column("phone")]
     public string phone { get; set; }
     
-    [ForeignKey("specialityId")]
+    [ForeignKey("speciality_id")]
     public Speciality speciality { get; set; }
 }

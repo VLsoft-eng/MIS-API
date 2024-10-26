@@ -1,11 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Domain.Enums;
 
 namespace Domain;
 
-[Table("patient")]
-public class Patient
+[Table("consultation")]
+public class Consultation
 {
     [Key]
     [Column("id")]
@@ -13,13 +12,10 @@ public class Patient
     
     [Column("create_time")]
     public DateTime createTime { get; set; }
-    
-    [Column("name")]
-    public string name { get; set; }
-    
-    [Column("birthday")]
-    public DateTime birtday { get; set; }
 
-    [Column("gender")]
-    public Gender gender { get; set; }
+    [ForeignKey("speciality_id")]
+    public Speciality speciality { get; set; }
+    
+    [ForeignKey("inspection_id")]
+    public Inspection inspection { get; set; }
 }
