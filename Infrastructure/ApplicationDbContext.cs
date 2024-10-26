@@ -11,6 +11,10 @@ public sealed class ApplicationDbContext : DbContext
 
     public DbSet<Icd> Icds { get; set; }
     public DbSet<Patient> Patients { get; set; }
+    public DbSet<Comment> Comments { get; set; }
+    public DbSet<Consultation> Consultations { get; set; }
+    public DbSet<Diagnosis> Diagnoses { get; set; }
+    public DbSet<Inspection> Inspections { get; set; }
     
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -48,8 +52,8 @@ public sealed class ApplicationDbContext : DbContext
             .HasIndex(token => token.tokenValue)
             .IsUnique();
         
-        modelBuilder.Entity<Doctor>().ToTable("doctors");
-        modelBuilder.Entity<Speciality>().ToTable("specialities");
+        modelBuilder.Entity<Doctor>().ToTable("doctor");
+        modelBuilder.Entity<Speciality>().ToTable("speciality");
         modelBuilder.Entity<Token>().ToTable("banned_tokens");
         modelBuilder.Entity<Icd>().ToTable("ICD_10");
         modelBuilder.Entity<Patient>().ToTable("patient");
