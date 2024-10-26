@@ -6,20 +6,40 @@ namespace Api.Controller;
 
 [ApiController]
 [Route("api/dictionary/")]
-public class DictionaryController
+public class DictionaryController : ControllerBase
 {
     private readonly ISpecialityService _specialityService;
+    private readonly IIcdService _icdService;
 
-    public DictionaryController (ISpecialityService specialityService)
+    public DictionaryController (ISpecialityService specialityService, IIcdService icdService)
     {
         _specialityService = specialityService;
+        _icdService = icdService;
     }
 
     [HttpGet("speciality")]
-    public async Task<SpecialitiesPagedListDto> GetByNameAndParams([FromQuery] int page = 1,
-        [FromQuery] int size = 5,
-        [FromQuery] string name = "")
+    public async Task<ActionResult<SpecialitiesPagedListDto>> GetSpecialitiesByNameAndParams(
+        [FromQuery] string name, 
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 5)
     {
-        return await _specialityService.GetByNameAndParams(name, page, size);
+        var pagedList = await _specialityService.GetByNameAndParams(name, page, size);
+        return Ok(pagedList);
+    }
+
+    [HttpGet("icd10/root")]
+    public async Task<List<Icd10RecordDto>> GetRootElements()
+    {
+        return await _icdService.GetRootElements();
+    }
+
+    [HttpGet("icd10")]
+    public async Task<ActionResult<Icd10SearchDto>> GetIcdByNameAndParams(
+        [FromQuery] string name, 
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 5)
+    {
+        var pagedList = await _icdService.GetByNameAndParams(name, page, size);
+        return Ok(pagedList);
     }
 }

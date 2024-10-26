@@ -25,6 +25,6 @@ public class SpecialityService : ISpecialityService
         var specialitiesDtos = _specialityMapper.ToDto(specialities);
         var pageInfoDto = new PageInfoDto(size, totalPages, page);
 
-        return  new SpecialitiesPagedListDto(specialitiesDtos, pageInfoDto);
+        return new SpecialitiesPagedListDto(specialitiesDtos, pageInfoDto);
     }
 }
