@@ -10,6 +10,7 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<Token> Tokens { get; set; }
 
     public DbSet<Icd> Icds { get; set; }
+    public DbSet<Patient> Patients { get; set; }
     
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -51,7 +52,6 @@ public sealed class ApplicationDbContext : DbContext
         modelBuilder.Entity<Speciality>().ToTable("specialities");
         modelBuilder.Entity<Token>().ToTable("banned_tokens");
         modelBuilder.Entity<Icd>().ToTable("ICD_10");
+        modelBuilder.Entity<Patient>().ToTable("patient");
     }
-    
-
 }
