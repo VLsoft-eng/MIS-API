@@ -187,4 +187,28 @@ public class PatientService : IPatientService
 
         return inspection.id;
     }
+    
+    public async Task<List<InspectionShortDto>> GetPatientInspectionsByParams(Guid patientId, string request)
+    {
+        var patient = await _patientRepository.GetById(patientId);
+        if (patient == null)
+        {
+            throw new PatientNotFoundException();
+        }
+
+        List <Inspection> inspections = await _inspectionRepository.GetRootInspectionsByRequest(patientId, request);
+        
+        List<InspectionShortDto> inspectionShortDtos = new List<InspectionShortDto>();
+        foreach (var inspection in inspections)
+        {
+            List<Diagnosis> diagnoses = await _diagnosisRepository.GetMainDiagnosesByInspectionId(inspection.id);
+            var mainDiagnosis = diagnoses[0];
+            var diagnosisDto = _diagnosisMapper.ToDto(mainDiagnosis);
+            
+            var inspectionShortDto = _inspectionMapper.ToInspectionShortDto(inspection, diagnosisDto);
+            inspectionShortDtos.Add(inspectionShortDto);
+        }
+
+        return inspectionShortDtos;
+    }
 }
