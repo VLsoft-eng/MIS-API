@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain;
 
-[Table(("Comment"))]
+[Table(("comment"))]
 public class Comment
 {
     [Key]

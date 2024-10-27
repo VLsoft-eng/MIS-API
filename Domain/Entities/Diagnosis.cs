@@ -17,6 +17,9 @@ public class Diagnosis
     [Column("description")]
     public string description { get; set; }
     
+    [Column("create_time")]
+    public DateTime createTime { get; set; }
+    
     [Column("diagnosis_type ")]
     public DiagnosisType diagnosisType { get; set; }
     

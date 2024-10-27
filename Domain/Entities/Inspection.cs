@@ -32,6 +32,9 @@ public class Inspection
     [Column("death_date")]
     public DateTime? deathDate { get; set; }
     
+    [Column("create_time")]
+    public DateTime createTime { get; set; }
+    
     [ForeignKey("doctor_id")]
     public Doctor doctor { get; set; }
     
