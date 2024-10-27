@@ -26,11 +26,11 @@ public class DiagnosisMapper : IDiagnosisMapper
         Diagnosis diagnosis)
     {
         return new DiagnosisDto(
+            diagnosis.id,
+            diagnosis.createTime,
             diagnosis.icd.сode,
             diagnosis.icd.name,
             diagnosis.description,
-            diagnosis.diagnosisType,
-            diagnosis.id,
-            diagnosis.createTime);
+            diagnosis.diagnosisType);
     }
 }
