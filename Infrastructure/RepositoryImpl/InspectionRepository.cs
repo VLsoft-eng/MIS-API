@@ -88,7 +88,7 @@ public class InspectionRepository : IInspectionRepository
         if (grouped)
         {
             inspectionQuery = inspectionQuery.Where(i => i.previousInspection  == null);
-        };
+        }
 
         var inspections = await inspectionQuery
             .Include(i => i.patient)
@@ -97,6 +97,33 @@ public class InspectionRepository : IInspectionRepository
             .Take(size)
             .ToListAsync();
         return inspections;
+    }
+
+    public async Task<int> GetInspectionsCountByParams(
+        Guid patientId,
+        bool grouped,
+        List<Guid> icd)
+    {
+        var baseQuery = _context.Diagnoses
+            .Where(d => d.inspection.patient.id == patientId);
+
+        if (icd != null && icd.Any())
+        {
+            baseQuery = baseQuery
+                .Where(d => d.diagnosisType == DiagnosisType.Main 
+                            && icd.Any(root => IsHasEqualRoot(d.icd, root)));
+        }
+
+        var inspectionQuery = baseQuery
+            .Select(d => d.inspection)
+            .Distinct();
+            
+        if (grouped)
+        {
+            inspectionQuery = inspectionQuery.Where(i => i.previousInspection  == null);
+        }
+
+        return await inspectionQuery.CountAsync();
     }
 
     private bool IsHasEqualRoot(Icd icd, Guid id)

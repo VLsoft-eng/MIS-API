@@ -14,7 +14,10 @@ public interface IInspectionRepository
         List<Guid> icd,
         int page,
         int size);
-
+    Task<int> GetInspectionsCountByParams(
+        Guid patientId,
+        bool grouped,
+        List<Guid> icd);
     Task<bool> IsHasChild(Guid id);
 
 }
