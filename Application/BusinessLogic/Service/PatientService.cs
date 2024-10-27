@@ -188,7 +188,7 @@ public class PatientService : IPatientService
         return inspection.id;
     }
     
-    public async Task<List<InspectionShortDto>> GetPatientInspectionsByParams(Guid patientId, string request)
+    public async Task<List<InspectionShortDto>> SearchPatientInspectionsByParams(Guid patientId, string request)
     {
         var patient = await _patientRepository.GetById(patientId);
         if (patient == null)
@@ -210,5 +210,45 @@ public class PatientService : IPatientService
         }
 
         return inspectionShortDtos;
+    }
+
+    public async Task<InspectionPagedListDto> GetPatientInspectionsByParams(
+        Guid patientId,
+        bool grouped,
+        List<Guid> icdRoots,
+        int page,
+        int size)
+    {
+        var patient = _patientRepository.GetById(patientId);
+        if (patient == null)
+        {
+            throw new PatientNotFoundException();
+        }
+        
+        var inspections = await _inspectionRepository.GetInspectionsByParams(patientId, grouped, icdRoots, page, size);
+        if (!inspections.Any())
+        {
+            throw new Exception();
+        }
+
+        List<InspectionFullDto> inspectionFullDtos = new List<InspectionFullDto>();
+        foreach (var inspection in inspections)
+        {
+            bool hasNested = await _inspectionRepository.IsHasChild(inspection.id);
+            bool hasChain = (hasNested || inspection.previousInspection != null);
+
+            var diagnosis = await _diagnosisRepository.GetMainDiagnosesByInspectionId(inspection.id);
+            var diagnosisDto = _diagnosisMapper.ToDto(diagnosis[0]);
+
+            var inspectionFullDto =
+                _inspectionMapper.ToInspectionFullDto(inspection, diagnosisDto, hasChain, hasNested);
+            inspectionFullDtos.Add(inspectionFullDto);
+        }
+
+        var overAllInspectionsByParams = await _inspectionRepository.GetInspectionsCountByParams(patientId, grouped, icdRoots);
+        var totalPages = (int)Math.Ceiling((double)overAllInspectionsByParams / size);
+        var pagedInfoDto = new PageInfoDto(size, totalPages, page);
+
+        return new InspectionPagedListDto(inspectionFullDtos, pagedInfoDto);
     }
 }
