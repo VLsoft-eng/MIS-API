@@ -46,4 +46,16 @@ public class PatientController : ControllerBase
     {
         return await _patientService.SearchPatientInspectionsByParams(id, request);
     }
+
+    [Authorize]
+    [HttpGet("{id}/inspections")]
+    public async Task<InspectionPagedListDto> GetPatientInspectionsByParams(
+        Guid id,
+        [FromQuery] bool grouped, 
+        [FromQuery] List<Guid> icdRoots,
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 5)
+    {
+        return await _patientService.GetPatientInspectionsByParams(id, grouped, icdRoots, page, size);
+    }
 }
