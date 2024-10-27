@@ -39,4 +39,11 @@ public class PatientController : ControllerBase
         Guid doctorId = Guid.Parse(HttpContext.GetUserId());
         return await _patientService.CreatePatientsInspection(id, doctorId, request);
     }
+
+    [Authorize]
+    [HttpGet("{id}/inspections/search")]
+    public async Task<List<InspectionShortDto>> GetPatientInspectionWithoutChilds(Guid id, [FromQuery] string request)
+    {
+        return await _patientService.GetPatientInspectionsByParams(id, request);
+    }
 }
