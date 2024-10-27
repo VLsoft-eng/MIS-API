@@ -12,7 +12,7 @@ public class Speciality
     public Guid id { get; set; }
     
     [Column("create_time")]
-    public DateTime CreateTime { get; set; }
+    public DateTime createTime { get; set; }
     
     [Column("name")]
     public string name { get; set; }

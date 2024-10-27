@@ -11,7 +11,7 @@ public class SpecialityMapper : ISpecialityMapper
         var specialitiesDtos = specialities
             .Select(s => new SpecialityDto(
                 s.id,
-                s.CreateTime,
+                s.createTime,
                 s.name))
             .ToList();
 
