@@ -12,4 +12,10 @@ public interface IInspectionMapper
         Inspection previousInspection);
 
     public InspectionShortDto ToInspectionShortDto(Inspection inspection, DiagnosisDto diagnosis);
+
+    InspectionFullDto ToInspectionFullDto(
+        Inspection inspection,
+        DiagnosisDto diagnosis,
+        bool hasChain,
+        bool hasNested);
 }

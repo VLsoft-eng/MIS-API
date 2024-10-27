@@ -29,12 +29,34 @@ public class InspectionMapper : IInspectionMapper
         };
     }
 
-    public InspectionShortDto ToInspectionShortDto(Inspection inspection, DiagnosisDto diagnosis)
+    public InspectionShortDto ToInspectionShortDto(
+        Inspection inspection, 
+        DiagnosisDto diagnosis)
     {
         return new InspectionShortDto(
             inspection.date,
             diagnosis,
             inspection.id,
             inspection.createTime);
+    }
+
+    public InspectionFullDto ToInspectionFullDto(
+        Inspection inspection, 
+        DiagnosisDto diagnosis,
+        bool hasChain,
+        bool hasNested)
+    {
+        return new InspectionFullDto(
+            inspection.id,
+            inspection.createTime,
+            inspection.previousInspection == null ? null : inspection.previousInspection.id,
+            inspection.date,
+            inspection.conclusion,
+            inspection.doctor.id,
+            inspection.patient.id,
+            diagnosis,
+            hasChain,
+            hasNested
+        );
     }
 }
