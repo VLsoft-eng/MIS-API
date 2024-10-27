@@ -21,4 +21,16 @@ public class DiagnosisMapper : IDiagnosisMapper
             createTime = DateTime.UtcNow
         };
     }
+
+    public DiagnosisDto ToDto(
+        Diagnosis diagnosis)
+    {
+        return new DiagnosisDto(
+            diagnosis.icd.сode,
+            diagnosis.icd.name,
+            diagnosis.description,
+            diagnosis.diagnosisType,
+            diagnosis.id,
+            diagnosis.createTime);
+    }
 }

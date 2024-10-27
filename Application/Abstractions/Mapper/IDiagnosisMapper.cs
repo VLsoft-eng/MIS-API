@@ -9,4 +9,7 @@ public interface IDiagnosisMapper
         DiagnosisCreateRequest diagnosisCreateRequest,
         Icd icd,
         Inspection inspection);
+
+    DiagnosisDto ToDto(
+        Diagnosis diagnosis);
 }
