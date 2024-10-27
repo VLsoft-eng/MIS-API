@@ -23,6 +23,7 @@ public class DiagnosisRepository : IDiagnosisRepository
     public async Task<List<Diagnosis>> GetMainDiagnosesByInspectionId(Guid inspectionId)
     {
         return await _context.Diagnoses
+            .Include(d => d.icd) 
             .Where(d => d.inspection.id == inspectionId)
             .Where(d => d.diagnosisType == DiagnosisType.Main)
             .ToListAsync();
