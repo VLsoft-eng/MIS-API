@@ -21,5 +21,5 @@ public class Diagnosis
     public DiagnosisType diagnosisType { get; set; }
     
     [ForeignKey("inspection_id")]
-    public Inspection Inspection { get; set; }
+    public Inspection inspection { get; set; }
 }

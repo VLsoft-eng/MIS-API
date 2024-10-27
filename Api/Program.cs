@@ -8,6 +8,7 @@ using Application.BusinessLogic.Mapper;
 using Application.BusinessLogic.Service;
 using Application.BusinessLogic.Validation;
 using Application.Dto;
+using Domain;
 using FluentValidation;
 using Infrastructure;
 using Infrastructure.Auth;
@@ -40,6 +41,20 @@ builder.Services.AddScoped<IIcdService, IcdService>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IPatientMapper, PatientMapper>();
 builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddScoped<IValidator<InspectionCreateRequest>, InspectionCreateValidator>();
+builder.Services.AddScoped<IValidator<ConsultationCreateRequest>, ConsultationCreateValidator>();
+builder.Services.AddScoped<IValidator<InspectionCommentCreateRequest>, InspectionCommentCreateValidator>();
+builder.Services.AddScoped<IValidator<DiagnosisCreateRequest>, DiagnosisCreateValidator>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<IInspectionRepository, InspectionRepository>();
+builder.Services.AddScoped<IConsultationRepository, ConsultationRepository>();
+builder.Services.AddScoped<IDiagnosisRepository, DiagnosisRepository>();
+builder.Services.AddScoped<IInspectionMapper, InspectionMapper>();
+builder.Services.AddScoped<IDiagnosisMapper, DiagnosisMapper>();
+builder.Services.AddScoped<ICommentMapper, CommentMapper>();
+builder.Services.AddScoped<IConsultationMapper, ConsultationMapper>();
+
+
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
 
 builder.Services.AddControllers();

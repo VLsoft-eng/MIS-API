@@ -54,11 +54,11 @@ public class InspectionRepository : IInspectionRepository
     public async Task<List<Inspection>> GetRootInspectionsByRequest(Guid patientId, string request)
     {
         var inspections = await _context.Diagnoses
-            .Where(d => d.Inspection.patient.id == patientId && 
+            .Where(d => d.inspection.patient.id == patientId && 
                         d.diagnosisType == DiagnosisType.Main && 
                         (d.icd.name.Contains(request) || d.icd.сode.Contains(request)) &&
-                        d.Inspection.previousInspection == null)
-            .Select(d => d.Inspection)
+                        d.inspection.previousInspection == null)
+            .Select(d => d.inspection)
             .ToListAsync();
 
         return inspections;
