@@ -63,4 +63,49 @@ public class InspectionRepository : IInspectionRepository
 
         return inspections;
     }
+
+    public async Task<List<Inspection>> GetInspectionsByParams(
+        Guid patientId, 
+        bool grouped, 
+        List<string> icd, 
+        int page,
+        int size)
+    {
+        var baseQuery = _context.Diagnoses
+            .Where(d => d.inspection.patient.id == patientId);
+
+        if (icd != null && icd.Any())
+        {
+            baseQuery = baseQuery
+                .Where(d => d.diagnosisType == DiagnosisType.Main 
+                            && icd.Any(root => IsHasEqualRoot(d.icd, root)));
+        }
+
+        var inspectionQuery= baseQuery
+            .Select(d => d.inspection)
+            .Distinct();
+
+        var inspections = await inspectionQuery
+            .Include(i => i.patient)
+            .Include(i => i.doctor)
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToListAsync();
+        return inspections;
+    }
+
+    private bool IsHasEqualRoot(Icd icd, string code)
+    {
+        while (icd != null)
+        {
+            if (icd.сode == code)
+            {
+                return true;
+            }
+
+            icd = icd.parent;
+        }
+
+        return false;
+    }
 }
