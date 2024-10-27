@@ -1,8 +1,9 @@
+using Application.Abstractions.Repository;
 using Domain;
 
 namespace Infrastructure.RepositoryImpl;
 
-public class CommentRepository
+public class CommentRepository :ICommentRepository
 {
     private readonly ApplicationDbContext _context;
 

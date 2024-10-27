@@ -1,8 +1,9 @@
+using Application.Abstractions.Repository;
 using Domain;
 
 namespace Infrastructure.RepositoryImpl;
 
-public class DiagnosisRepository
+public class DiagnosisRepository : IDiagnosisRepository
 {
     private readonly ApplicationDbContext _context;
 

@@ -1,12 +1,13 @@
+using Application.Abstractions.Repository;
 using Domain;
 
 namespace Infrastructure.RepositoryImpl;
 
-public class ConsultationRepository
+public class ConsultationRepository : IConsultationRepository
 {
     private readonly ApplicationDbContext _context;
 
-    public ConsultatoinRepository(ApplicationDbContext context)
+    public ConsultationRepository(ApplicationDbContext context)
     {
         _context = context;
     }

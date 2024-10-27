@@ -1,10 +1,11 @@
+using Application.Abstractions.Repository;
 using Domain;
 using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.RepositoryImpl;
 
-public class InspectionRepository
+public class InspectionRepository : IInspectionRepository
 {
     private readonly ApplicationDbContext _context;
 
