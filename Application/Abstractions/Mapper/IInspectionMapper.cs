@@ -10,4 +10,6 @@ public interface IInspectionMapper
         Doctor doctor,
         Patient patient,
         Inspection previousInspection);
+
+    public InspectionShortDto ToInspectionShortDto(Inspection inspection, DiagnosisDto diagnosis);
 }

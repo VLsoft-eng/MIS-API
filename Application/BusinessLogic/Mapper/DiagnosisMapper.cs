@@ -17,7 +17,8 @@ public class DiagnosisMapper : IDiagnosisMapper
             description = diagnosisCreateRequest.description,
             diagnosisType = diagnosisCreateRequest.type,
             icd = icd,
-            inspection = inspection
+            inspection = inspection,
+            createTime = DateTime.UtcNow
         };
     }
 }

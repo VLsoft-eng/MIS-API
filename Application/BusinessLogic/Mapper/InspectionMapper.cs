@@ -24,7 +24,17 @@ public class InspectionMapper : IInspectionMapper
             deathDate = inspectionCreateRequest.deathDate,
             doctor = doctor,
             patient = patient,
-            previousInspection = previousInspection
+            previousInspection = previousInspection,
+            createTime = DateTime.UtcNow
         };
+    }
+
+    public InspectionShortDto ToInspectionShortDto(Inspection inspection, DiagnosisDto diagnosis)
+    {
+        return new InspectionShortDto(
+            inspection.date,
+            diagnosis,
+            inspection.id,
+            inspection.createTime);
     }
 }
