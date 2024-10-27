@@ -1,3 +1,4 @@
+using Api.Extensions;
 using Application.Abstractions.Service;
 using Application.Dto;
 using Microsoft.AspNetCore.Authorization;
@@ -28,5 +29,14 @@ public class PatientController : ControllerBase
     public async Task<ActionResult<PatientDto>> GetPatientById(Guid id)
     {
         return await _patientService.GetPatientById(id);
+    }
+
+    [Authorize]
+    [HttpPost("{id}/inspections")]
+    public async Task<ActionResult<Guid>> CreateInspectionForPatient(Guid id,
+        [FromBody] InspectionCreateRequest request)
+    {
+        Guid doctorId = Guid.Parse(HttpContext.GetUserId());
+        return await _patientService.CreatePatientsInspection(id, doctorId, request);
     }
 }
