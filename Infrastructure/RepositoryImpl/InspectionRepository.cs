@@ -67,7 +67,7 @@ public class InspectionRepository : IInspectionRepository
     public async Task<List<Inspection>> GetInspectionsByParams(
         Guid patientId, 
         bool grouped, 
-        List<string> icd, 
+        List<Guid> icd, 
         int page,
         int size)
     {
@@ -81,9 +81,14 @@ public class InspectionRepository : IInspectionRepository
                             && icd.Any(root => IsHasEqualRoot(d.icd, root)));
         }
 
-        var inspectionQuery= baseQuery
+        var inspectionQuery = baseQuery
             .Select(d => d.inspection)
             .Distinct();
+            
+        if (grouped)
+        {
+            inspectionQuery = inspectionQuery.Where(i => i.previousInspection  == null);
+        };
 
         var inspections = await inspectionQuery
             .Include(i => i.patient)
@@ -94,11 +99,11 @@ public class InspectionRepository : IInspectionRepository
         return inspections;
     }
 
-    private bool IsHasEqualRoot(Icd icd, string code)
+    private bool IsHasEqualRoot(Icd icd, Guid id)
     {
         while (icd != null)
         {
-            if (icd.сode == code)
+            if (icd.id == id)
             {
                 return true;
             }
@@ -107,5 +112,11 @@ public class InspectionRepository : IInspectionRepository
         }
 
         return false;
+    }
+
+    public async Task<bool> IsHasChild(Guid id)
+    {
+        return await _context.Inspections.AnyAsync(i => i.previousInspection.id != null
+                                           && i.previousInspection.id == id);
     }
 }
