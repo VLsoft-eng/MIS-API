@@ -34,5 +34,10 @@ public class IcdRepository : IIcdRepository
         return await _context.Icds
             .CountAsync(s => s.name.Contains(name));
     }
+
+    public async Task<Icd?> GetById(Guid id)
+    {
+        return await _context.Icds.FindAsync(id);
+    }
     
 }
