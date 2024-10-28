@@ -219,20 +219,36 @@ public class PatientService : IPatientService
         int page,
         int size)
     {
-        var patient = _patientRepository.GetById(patientId);
+        var patient = await _patientRepository.GetById(patientId);
         if (patient == null)
         {
             throw new PatientNotFoundException();
         }
-        
-        var inspections = await _inspectionRepository.GetInspectionsByParams(patientId, grouped, icdRoots, page, size);
-        if (!inspections.Any())
-        {
-            throw new Exception();
-        }
 
+        var diagnoses = await _diagnosisRepository.GetPatientsDiagnoses(patientId);
+        if (icdRoots.Any())
+        {
+            diagnoses = diagnoses
+                .Where(d => d.icd != null && icdRoots.Any(root => IsHasIcdRoot(d.icd, root)))
+                .ToList();
+        }
+        
+        var inspections = diagnoses.Select(d => d.inspection).Distinct().ToList();
+
+        if (grouped)
+        {
+            inspections = inspections
+                .Where(i => i.previousInspection == null)
+                .ToList();
+        }
+        
+        var pagedInspections = inspections
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToList();
+        
         List<InspectionFullDto> inspectionFullDtos = new List<InspectionFullDto>();
-        foreach (var inspection in inspections)
+        foreach (var inspection in pagedInspections)
         {
             bool hasNested = await _inspectionRepository.IsHasChild(inspection.id);
             bool hasChain = (hasNested || inspection.previousInspection != null);
@@ -245,10 +261,27 @@ public class PatientService : IPatientService
             inspectionFullDtos.Add(inspectionFullDto);
         }
 
-        var overAllInspectionsByParams = await _inspectionRepository.GetInspectionsCountByParams(patientId, grouped, icdRoots);
-        var totalPages = (int)Math.Ceiling((double)overAllInspectionsByParams / size);
-        var pagedInfoDto = new PageInfoDto(size, totalPages, page);
+        var overAllInspectionsCount = pagedInspections.Count;
+        var totalPages = (int)Math.Ceiling((double)overAllInspectionsCount / size);
+        var pageInfo = new PageInfoDto(size, totalPages, page);
 
-        return new InspectionPagedListDto(inspectionFullDtos, pagedInfoDto);
+        return new InspectionPagedListDto(inspectionFullDtos, pageInfo);
+    }
+
+    private bool IsHasIcdRoot(Icd icd, Guid rootId)
+    {
+        var currentIcd = icd;
+
+        while (currentIcd != null)
+        {
+            if (icd.id == rootId)
+            {
+                return true;
+            }
+
+            currentIcd = currentIcd.parent;
+        }
+
+        return false;
     }
 }
