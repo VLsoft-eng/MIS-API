@@ -1,13 +1,15 @@
 using Api.Extensions;
 using Application.Abstractions.Service;
+using Application.BusinessLogic.Enums;
 using Application.Dto;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controller;
 
 [ApiController]
-[Route("api/patient/")]
+[Route("api/patient")]
 public class PatientController : ControllerBase
 {
     private readonly IPatientService _patientService;
@@ -18,21 +20,21 @@ public class PatientController : ControllerBase
     }
 
     [Authorize]
-    [HttpPost("create")]
+    [HttpPost]
     public async Task CreatePatient([FromBody] PatientCreateRequest request)
     {
         await _patientService.Create(request);
     }
 
     [Authorize]
-    [HttpGet("{id}")]
+    [HttpGet("/{id}")]
     public async Task<ActionResult<PatientDto>> GetPatientById(Guid id)
     {
         return await _patientService.GetPatientById(id);
     }
 
     [Authorize]
-    [HttpPost("{id}/inspections")]
+    [HttpPost("/{id}/inspections")]
     public async Task<ActionResult<Guid>> CreateInspectionForPatient(Guid id,
         [FromBody] InspectionCreateRequest request)
     {
@@ -41,7 +43,7 @@ public class PatientController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("{id}/inspections/search")]
+    [HttpGet("/{id}/inspections/search")]
     public async Task<List<InspectionShortDto>> GetPatientInspectionWithoutChilds(Guid id, [FromQuery] string request)
     {
         return await _patientService.SearchPatientInspectionsByParams(id, request);
@@ -58,4 +60,22 @@ public class PatientController : ControllerBase
     {
         return await _patientService.GetPatientInspectionsByParams(id, grouped, icdRoots, page, size);
     }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult<PatientPagedListDto>> GetPatientList(
+        [FromQuery] string name,
+        [FromQuery] Conclusion conclusion,
+        [FromQuery] SortingType sorting,
+        [FromQuery] bool scheduledVisits,
+        [FromQuery] bool onlyMine,
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 5)
+    {
+        Guid doctorId = Guid.Parse(HttpContext.GetUserId());
+        
+        return await _patientService.GetPatientsByParams(name, conclusion, sorting, scheduledVisits, onlyMine, page,
+            size, doctorId);
+    }
+    
 }

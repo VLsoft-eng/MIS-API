@@ -1,4 +1,6 @@
+using Application.BusinessLogic.Enums;
 using Application.Dto;
+using Domain.Enums;
 
 namespace Application.Abstractions.Service;
 
@@ -15,4 +17,14 @@ public interface IPatientService
         List<Guid> icdRoots,
         int page,
         int size);
+
+    Task<PatientPagedListDto> GetPatientsByParams(
+        string request,
+        Conclusion conclusion,
+        SortingType sorting,
+        bool scheduledVisits,
+        bool onlyMine,
+        int page,
+        int size,
+        Guid doctorId);
 }
