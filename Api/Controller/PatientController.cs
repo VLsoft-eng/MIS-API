@@ -27,14 +27,14 @@ public class PatientController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("/{id}")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<PatientDto>> GetPatientById(Guid id)
     {
         return await _patientService.GetPatientById(id);
     }
 
     [Authorize]
-    [HttpPost("/{id}/inspections")]
+    [HttpPost("{id}/inspections")]
     public async Task<ActionResult<Guid>> CreateInspectionForPatient(Guid id,
         [FromBody] InspectionCreateRequest request)
     {
@@ -43,7 +43,7 @@ public class PatientController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("/{id}/inspections/search")]
+    [HttpGet("{id}/inspections/search")]
     public async Task<List<InspectionShortDto>> GetPatientInspectionWithoutChilds(Guid id, [FromQuery] string request)
     {
         return await _patientService.SearchPatientInspectionsByParams(id, request);
