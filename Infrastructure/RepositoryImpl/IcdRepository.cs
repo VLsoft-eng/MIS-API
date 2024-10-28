@@ -37,7 +37,9 @@ public class IcdRepository : IIcdRepository
 
     public async Task<Icd?> GetById(Guid id)
     {
-        return await _context.Icds.FindAsync(id);
+        return await _context.Icds
+            .Include(i => i.parent)
+            .FirstOrDefaultAsync(i => i.id == id);
     }
     
 }

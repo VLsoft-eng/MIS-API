@@ -27,7 +27,9 @@ public class DoctorRepository : IDoctorRepository
 
     public async Task<Doctor?> GetById(Guid id)
     {
-        return await _context.Doctors.FindAsync(id);
+        return await _context.Doctors
+            .Include(d => d.speciality)
+            .FirstOrDefaultAsync(i => i.id == id);
     }
 
     public async Task<Doctor?> GetByEmail(string email)

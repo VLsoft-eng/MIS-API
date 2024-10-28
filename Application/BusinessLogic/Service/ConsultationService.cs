@@ -19,6 +19,10 @@ public class ConsultationService : IConsultationService
     private readonly IValidator<ConsultationCommentCreateRequest> _consultationCommentCreateValidator;
     private readonly ISpecialityMapper _specialityMapper;
     private readonly IConsultationMapper _consultationMapper;
+    private readonly IDiagnosisRepository _diagnosisRepository;
+    private readonly IDiagnosisMapper _diagnosisMapper;
+    private readonly IInspectionMapper _inspectionMapper;
+    private readonly IIcdRepository _icdRepository;
 
     public ConsultationService(
         IConsultationRepository consultationRepository,
@@ -29,7 +33,11 @@ public class ConsultationService : IConsultationService
         IDoctorRepository doctorRepository,
         IValidator<ConsultationCommentCreateRequest> consultationCommentCreateValidator,
         ISpecialityMapper specialityMapper,
-        IConsultationMapper consultationMapper)
+        IConsultationMapper consultationMapper,
+        IDiagnosisRepository diagnosisRepository,
+        IDiagnosisMapper diagnosisMapper,
+        IInspectionMapper inspectionMapper,
+        IIcdRepository icdRepository)
     {
         _consultationRepository = consultationRepository;
         _inspectionRepository = inspectionRepository;
@@ -40,6 +48,10 @@ public class ConsultationService : IConsultationService
         _consultationCommentCreateValidator = consultationCommentCreateValidator;
         _specialityMapper = specialityMapper;
         _consultationMapper = consultationMapper;
+        _diagnosisRepository = diagnosisRepository;
+        _diagnosisMapper = diagnosisMapper;
+        _inspectionMapper = inspectionMapper;
+        _icdRepository = icdRepository;
     }
 
     public async Task UpdateComment(Guid commentId, CommentEditRequest request)
@@ -108,5 +120,112 @@ public class ConsultationService : IConsultationService
 
         var consultationDto = _consultationMapper.ToDto(consultation, specialityDto, commentDtos);
         return consultationDto;
+    }
+    
+    public async Task<InspectionPagedListDto> GetInspectionsWithDoctorSpeciality(
+        Guid doctorId,
+        bool grouped,
+        List<Guid> icdRoots,
+        int page,
+        int size)
+    {
+        var diagnoses = await _diagnosisRepository.GetAllDiagnoses();
+        if (icdRoots.Any())
+        {
+            var filteredDiagnoses = new List<Diagnosis>();
+
+            foreach (var diagnosis in diagnoses)
+            {
+                bool hasRoot = false;
+
+                foreach (var root in icdRoots)
+                {
+                    if (await IsHasIcdRoot(diagnosis.icd, root))
+                    {
+                        hasRoot = true;
+                        break; 
+                    }
+                }
+
+                if (hasRoot)
+                {
+                    filteredDiagnoses.Add(diagnosis);
+                }
+            }
+
+            diagnoses = filteredDiagnoses;
+        }
+        
+        var inspections = diagnoses.Select(d => d.inspection).Distinct().ToList();
+
+        if (grouped)
+        {
+            var filteredInspections = new List<Inspection>();
+            foreach (var inspection in inspections)
+            {
+                var inspectionEntity = await _inspectionRepository.GetById(inspection.id);
+                if (inspectionEntity.previousInspection == null)
+                {
+                    filteredInspections.Add(inspectionEntity);
+                }
+            }
+
+            inspections = filteredInspections;
+        }
+
+        var doctor = await _doctorRepository.GetById(doctorId);
+        var doctorSpecialtyId = doctor.speciality.id;
+        
+        var consultations = await _consultationRepository.GetBySpecialityId(doctorSpecialtyId);
+        var inspectionIds = consultations.Select(c => c.inspection.id).Distinct().ToList();
+        
+        inspections = inspections.Where(i => inspectionIds.Contains(i.id)).ToList();
+        
+        var pagedInspections = inspections
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToList();
+        
+        List<InspectionFullDto> inspectionFullDtos = new List<InspectionFullDto>();
+        foreach (var inspection in pagedInspections)
+        {
+            bool hasNested = await _inspectionRepository.IsHasChild(inspection.id);
+            bool hasChain = (hasNested || inspection.previousInspection != null);
+
+            var diagnosis = await _diagnosisRepository.GetMainDiagnosesByInspectionId(inspection.id);
+            var diagnosisDto = _diagnosisMapper.ToDto(diagnosis[0]);
+
+            var inspectionFullDto =
+                _inspectionMapper.ToInspectionFullDto(inspection, diagnosisDto, hasChain, hasNested);
+            inspectionFullDtos.Add(inspectionFullDto);
+        }
+
+        var overAllInspectionsCount = pagedInspections.Count;
+        var totalPages = (int)Math.Ceiling((double)overAllInspectionsCount / size);
+        var pageInfo = new PageInfoDto(size, totalPages, page);
+
+        return new InspectionPagedListDto(inspectionFullDtos, pageInfo);
+    }
+
+    private async Task<bool> IsHasIcdRoot(Icd icd, Guid rootId)
+    {
+        var currentIcd = icd;
+
+        while (currentIcd != null)
+        {
+            if (icd.id == rootId)
+            {
+                return true;
+            }
+
+            if (icd.parent == null)
+            {
+                return false;
+            }
+
+            currentIcd = await _icdRepository.GetById(currentIcd.parent.id);
+        }
+
+        return false;
     }
 }

@@ -230,9 +230,28 @@ public class PatientService : IPatientService
         var diagnoses = await _diagnosisRepository.GetPatientsDiagnoses(patientId);
         if (icdRoots.Any())
         {
-            diagnoses = diagnoses
-                .Where(d => d.icd != null && icdRoots.Any(root => IsHasIcdRoot(d.icd, root)))
-                .ToList();
+            var filteredDiagnoses = new List<Diagnosis>();
+
+            foreach (var diagnosis in diagnoses)
+            {
+                bool hasRoot = false;
+
+                foreach (var root in icdRoots)
+                {
+                    if (await IsHasIcdRoot(diagnosis.icd, root))
+                    {
+                        hasRoot = true;
+                        break; 
+                    }
+                }
+
+                if (hasRoot)
+                {
+                    filteredDiagnoses.Add(diagnosis);
+                }
+            }
+
+            diagnoses = filteredDiagnoses;
         }
         
         var inspections = diagnoses.Select(d => d.inspection).Distinct().ToList();
@@ -270,7 +289,7 @@ public class PatientService : IPatientService
         return new InspectionPagedListDto(inspectionFullDtos, pageInfo);
     }
 
-    private bool IsHasIcdRoot(Icd icd, Guid rootId)
+    private async Task<bool> IsHasIcdRoot(Icd icd, Guid rootId)
     {
         var currentIcd = icd;
 
@@ -281,7 +300,12 @@ public class PatientService : IPatientService
                 return true;
             }
 
-            currentIcd = currentIcd.parent;
+            if (icd.parent == null)
+            {
+                return false;
+            }
+
+            currentIcd = await _icdRepository.GetById(currentIcd.parent.id);
         }
 
         return false;

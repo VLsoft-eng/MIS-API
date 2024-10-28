@@ -39,6 +39,18 @@ public class ConsultationController : ControllerBase
     {
         return await _consultationService.GetConsultation(id);
     }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<InspectionPagedListDto> GetDoctorsSpecialityInspections(
+        [FromQuery] bool grouped,
+        [FromQuery] List<Guid> icdRoots,
+        [FromQuery] int page = 1,
+        [FromQuery] int size = 5)
+    {
+        Guid doctorId = Guid.Parse(HttpContext.GetUserId());
+        return await _consultationService.GetInspectionsWithDoctorSpeciality(doctorId, grouped, icdRoots, page, size);
+    }
     
    
 }

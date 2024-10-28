@@ -27,7 +27,9 @@ public class CommentRepository :ICommentRepository
 
     public async Task<Comment?> GetById(Guid commentId)
     {
-        return await _context.Comments.FindAsync(commentId);
+        return await _context.Comments
+            .Include(c => c.parent)
+            .FirstOrDefaultAsync(c => c.id == commentId);
     }
 
     public async Task<List<Comment>> GetCommentsByConsultationId(Guid consultationId)

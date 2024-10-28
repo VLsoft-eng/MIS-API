@@ -88,7 +88,8 @@ public class InspectionRepository : IInspectionRepository
 
     public async Task<bool> IsHasChild(Guid id)
     {
-        return await _context.Inspections.AnyAsync(i => i.previousInspection.id != null
-                                           && i.previousInspection.id == id);
+        return await _context.Inspections
+            .Include(i => i.previousInspection)
+            .AnyAsync(i => i.previousInspection.id != null && i.previousInspection.id == id);
     }
 }

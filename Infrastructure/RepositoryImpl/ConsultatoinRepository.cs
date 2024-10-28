@@ -26,4 +26,13 @@ public class ConsultationRepository : IConsultationRepository
             .Include(c => c.inspection)
             .FirstOrDefaultAsync(c => c.id == consultationId);
     }
+
+    public async Task<List<Consultation>> GetBySpecialityId(Guid id)
+    {
+        return await _context.Consultations
+            .Include(c => c.speciality)
+            .Include(c => c.inspection)
+            .Where(c => c.speciality.id == id)
+            .ToListAsync();
+    }
 }
