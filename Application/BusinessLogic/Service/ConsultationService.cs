@@ -17,6 +17,8 @@ public class ConsultationService : IConsultationService
     private readonly IValidator<CommentEditRequest> _commentEditValidator;
     private readonly IDoctorRepository _doctorRepository;
     private readonly IValidator<ConsultationCommentCreateRequest> _consultationCommentCreateValidator;
+    private readonly ISpecialityMapper _specialityMapper;
+    private readonly IConsultationMapper _consultationMapper;
 
     public ConsultationService(
         IConsultationRepository consultationRepository,
@@ -25,7 +27,9 @@ public class ConsultationService : IConsultationService
         ICommentMapper commentMapper,
         IValidator<CommentEditRequest> commentEditValidator,
         IDoctorRepository doctorRepository,
-        IValidator<ConsultationCommentCreateRequest> consultationCommentCreateValidator)
+        IValidator<ConsultationCommentCreateRequest> consultationCommentCreateValidator,
+        ISpecialityMapper specialityMapper,
+        IConsultationMapper consultationMapper)
     {
         _consultationRepository = consultationRepository;
         _inspectionRepository = inspectionRepository;
@@ -34,6 +38,8 @@ public class ConsultationService : IConsultationService
         _commentEditValidator = commentEditValidator;
         _doctorRepository = doctorRepository;
         _consultationCommentCreateValidator = consultationCommentCreateValidator;
+        _specialityMapper = specialityMapper;
+        _consultationMapper = consultationMapper;
     }
 
     public async Task UpdateComment(Guid commentId, CommentEditRequest request)
@@ -51,6 +57,7 @@ public class ConsultationService : IConsultationService
         }
         
         _commentMapper.UpdateCommentEntity(comment, request);
+        await _commentRepository.Update(comment);
     }
 
     public async Task<Guid> CreateComment(Guid consultationId, Guid doctorId, ConsultationCommentCreateRequest request)
@@ -84,5 +91,22 @@ public class ConsultationService : IConsultationService
         await _commentRepository.Create(comment);
         
         return comment.id;
+    }
+
+    public async Task<ConsultationDto> GetConsultation(Guid consultationId)
+    {
+        var consultation = await _consultationRepository.GetById(consultationId);
+        if (consultation == null)
+        {
+            throw new ConsultationNotFoundException();
+        }
+
+        var comments = await _commentRepository.GetCommentsByConsultationId(consultationId);
+        
+        var commentDtos = comments.Select(c => _commentMapper.ToDto(c)).ToList();
+        var specialityDto = _specialityMapper.ToDto(consultation.speciality);
+
+        var consultationDto = _consultationMapper.ToDto(consultation, specialityDto, commentDtos);
+        return consultationDto;
     }
 }
