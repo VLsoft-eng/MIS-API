@@ -51,7 +51,7 @@ public class DoctorService : IDoctorService
 
         if (!validation.IsValid)
         {
-            throw new ValidationException(validation.Errors[0].ToString());
+            throw new ValidationException(validation.Errors[0].ErrorMessage);
         }
 
         var existingDoctor = await _doctorRepository.GetByEmail(request.email);
@@ -76,7 +76,7 @@ public class DoctorService : IDoctorService
         var validation = await _loginValidator.ValidateAsync(request);
         if (!validation.IsValid)
         {
-            throw new ValidationException(validation.Errors[0].ToString());
+            throw new ValidationException(validation.Errors[0].ErrorMessage);
         }
 
         var doctor = await _doctorRepository.GetByEmail(request.email);
@@ -120,7 +120,7 @@ public class DoctorService : IDoctorService
         var validation = await _doctorEditValidator.ValidateAsync(request);
         if (!validation.IsValid)
         {
-            throw new ValidationException(validation.Errors[0].ToString());
+            throw new ValidationException(validation.Errors[0].ErrorMessage);
         }
         
         _doctorMapper.UpdateDoctorEntity(doctor, request);

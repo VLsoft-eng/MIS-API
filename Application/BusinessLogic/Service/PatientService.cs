@@ -76,7 +76,7 @@ public class PatientService : IPatientService
         var validation = await _patientCreateValidator.ValidateAsync(request);
         if (!validation.IsValid)
         {
-            throw new ValidationException(validation.Errors[0].ToString());
+            throw new ValidationException(validation.Errors[0].ErrorMessage);
         }
 
         var patient = _patientMapper.ToEntity(request);
@@ -106,7 +106,7 @@ public class PatientService : IPatientService
         var inspectionValidation = await _inspectionCreateValidator.ValidateAsync(request);
         if (!inspectionValidation.IsValid)
         {
-            throw new ValidationException(inspectionValidation.Errors[0].ToString());
+            throw new ValidationException(inspectionValidation.Errors[0].ErrorMessage);
         }
 
         Inspection previousInspection = null;
@@ -128,13 +128,13 @@ public class PatientService : IPatientService
                 var consultationValidation = await _consultationCreateValidator.ValidateAsync(consultation);
                 if (!consultationValidation.IsValid)
                 {
-                    throw new ValidationException(consultationValidation.Errors[0].ToString());
+                    throw new ValidationException(consultationValidation.Errors[0].ErrorMessage);
                 }
 
                 var commentValidation = await _inspectionCreateCommentValidator.ValidateAsync(consultation.comment);
                 if (!commentValidation.IsValid)
                 {
-                    throw new ValidationException(commentValidation.Errors[0].ToString());
+                    throw new ValidationException(commentValidation.Errors[0].ErrorMessage);
                 }
 
                 var speciality = await _specialityRepository.GetById(consultation.specialityId);
@@ -150,7 +150,7 @@ public class PatientService : IPatientService
             var diagnosisValidation = await _diagnosisCreateValidator.ValidateAsync(diagnosis);
             if (!diagnosisValidation.IsValid)
             {
-                throw new ValidationException(diagnosisValidation.Errors[0].ToString());
+                throw new ValidationException(diagnosisValidation.Errors[0].ErrorMessage);
             }
 
             var icd = await _icdRepository.GetById(diagnosis.icdDiagnosisId);
