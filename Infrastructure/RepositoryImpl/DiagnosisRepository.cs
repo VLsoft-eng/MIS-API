@@ -28,4 +28,16 @@ public class DiagnosisRepository : IDiagnosisRepository
             .Where(d => d.diagnosisType == DiagnosisType.Main)
             .ToListAsync();
     }
+
+    public async Task<List<Diagnosis>> GetPatientsDiagnoses(Guid patientId)
+    {
+        return await _context.Diagnoses
+            .Include(d => d.icd)
+            .Include(d => d.inspection)
+            .Include(d => d.inspection.patient)
+            .Include(d => d.inspection.previousInspection)
+            .Include(d => d.inspection.doctor)
+            .Where(d => d.inspection.patient.id == patientId)
+            .ToListAsync();
+    }
 }

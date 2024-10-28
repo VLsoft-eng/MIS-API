@@ -6,4 +6,5 @@ public interface IDiagnosisRepository
 {
     Task Create(Diagnosis diagnosis);
     Task<List<Diagnosis>> GetMainDiagnosesByInspectionId(Guid inspectionId);
+    Task<List<Diagnosis>> GetPatientsDiagnoses(Guid patientId);
 }
