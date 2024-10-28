@@ -10,4 +10,6 @@ public interface ICommentMapper
         Doctor doctor,
         Consultation consultation,
         Comment parent);
+
+    void UpdateCommentEntity(Comment comment, CommentEditRequest request);
 }

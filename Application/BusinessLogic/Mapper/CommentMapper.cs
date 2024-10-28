@@ -23,4 +23,9 @@ public class CommentMapper : ICommentMapper
             parent = parent,
         };
     }
+
+    public void UpdateCommentEntity(Comment comment, CommentEditRequest request)
+    {
+        comment.content = request.content;
+    }
 }
