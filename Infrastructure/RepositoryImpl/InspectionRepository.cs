@@ -71,6 +71,21 @@ public class InspectionRepository : IInspectionRepository
             .ToListAsync();
     }
 
+    public async Task<List<Inspection>> GetDoctorInspections(Guid doctorId)
+    {
+        return await _context.Inspections
+            .Include(i => i.doctor)
+            .Where(i => i.doctor.id == doctorId)
+            .ToListAsync();
+    }
+
+    public async Task<List<Inspection>> GetAllInspections()
+    {
+        return await _context.Inspections
+            .Include(i => i.patient)
+            .ToListAsync();
+    }
+
     public async Task<bool> IsHasChild(Guid id)
     {
         return await _context.Inspections.AnyAsync(i => i.previousInspection.id != null

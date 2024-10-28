@@ -10,5 +10,7 @@ public interface IInspectionRepository
     Task<List<Inspection>> GetRootInspectionsByRequest(Guid patientId, string request);
     Task<List<Inspection>> GetPatientInspections(Guid patientId);
     Task<bool> IsHasChild(Guid id);
+    Task<List<Inspection>> GetDoctorInspections(Guid doctorId);
+    Task<List<Inspection>> GetAllInspections();
 
 }
