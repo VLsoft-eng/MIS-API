@@ -1,9 +1,11 @@
 using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
 using Application.Abstractions.Service;
+using Application.BusinessLogic.Enums;
 using Application.Dto;
 using Application.Exceptions;
 using Domain;
+using Domain.Enums;
 using FluentValidation;
 
 namespace Application.BusinessLogic.Service;
@@ -283,5 +285,117 @@ public class PatientService : IPatientService
         }
 
         return false;
+    }
+
+    public async Task<PatientPagedListDto> GetPatientsByParams(
+        string request,
+        Conclusion conclusion,
+        SortingType sorting,
+        bool scheduledVisits,
+        bool onlyMine,
+        int page, 
+        int size,
+        Guid doctorId)
+    {
+        var patients = await _patientRepository.GetAllPatients();
+        patients = patients.Where(patient => patient.name.ToLower().Contains(request.ToLower())).ToList();
+
+        if (onlyMine)
+        {
+            var inspections = await _inspectionRepository.GetDoctorInspections(doctorId);
+            var patientIdsWithInspections = inspections.Select(inspection => inspection.patient.id).Distinct().ToList();
+
+            patients = patients
+                .Where(patient => patientIdsWithInspections.Contains(patient.id))
+                .ToList();
+        }
+
+        if (scheduledVisits)
+        {
+            var allInspections = await _inspectionRepository.GetAllInspections();
+            var patientsWithScheduledVisits = allInspections
+                .Where(i => i.nextVisitDate != null && i.nextVisitDate > DateTime.UtcNow)
+                .Select(i => i.patient.id)
+                .Distinct()
+                .ToList();
+
+            patients = patients
+                .Where(p => patientsWithScheduledVisits.Contains(p.id))
+                .ToList();
+        }
+
+        if (conclusion != null)
+        {
+            var allInspections = await _inspectionRepository.GetAllInspections();
+            var patientsWithCurrentConclusion = allInspections
+                .Where(i => i.conclusion == conclusion)
+                .Select(i => i.patient.id)
+                .Distinct()
+                .ToList();
+
+            patients = patients
+                .Where(p => patientsWithCurrentConclusion.Contains(p.id))
+                .ToList();
+        }
+        
+        
+        var lastInspectionsDict = new Dictionary<Guid, DateTime?>();
+        
+        foreach (var patient in patients)
+        {
+            var inspections = await _inspectionRepository.GetPatientInspections(patient.id); 
+            var lastInspectionDate = inspections.Max(i => i.date); 
+            lastInspectionsDict[patient.id] = lastInspectionDate;
+        }
+        
+
+        switch (sorting)
+        {
+            case SortingType.CreateAsc:
+                patients = patients.OrderBy(patient => patient.createTime).ToList();
+                break;
+                
+            case SortingType.CreateDesc:
+                patients = patients.OrderByDescending(patient => patient.createTime).ToList();
+                break;
+            
+            case SortingType.NameAsc:
+                patients = patients.OrderBy(patient => patient.name).ToList();
+                break;
+            
+            case SortingType.NameDesc:
+                patients = patients.OrderByDescending(patient => patient.name).ToList();
+                break;
+            
+            case SortingType.InspectionAsc:
+                
+                patients = patients
+                    .OrderBy(patient => lastInspectionsDict[patient.id]) 
+                    .ToList();
+                break;
+            
+            case SortingType.InspectionDesc:
+                
+                patients = patients
+                    .OrderByDescending(patient => lastInspectionsDict[patient.id]) 
+                    .ToList();
+                break;
+        }
+
+        var overAllPatientsCount = patients.Count;
+        var totalPages = (int)Math.Ceiling((double)overAllPatientsCount / size);
+
+        var pagedPatients = patients
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToList();
+
+        List<PatientDto> patientDtos = pagedPatients
+            .Select(p => _patientMapper.ToDto(p))
+            .ToList();
+        var pageInfo = new PageInfoDto(size, totalPages, page);
+        var patientPagedListDto = new PatientPagedListDto(patientDtos, pageInfo);
+
+        return patientPagedListDto;
     }
 }
