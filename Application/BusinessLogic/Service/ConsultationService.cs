@@ -15,20 +15,25 @@ public class ConsultationService : IConsultationService
     private readonly IInspectionRepository _inspectionRepository;
     private readonly ICommentMapper _commentMapper;
     private readonly IValidator<CommentEditRequest> _commentEditValidator;
+    private readonly IDoctorRepository _doctorRepository;
+    private readonly IValidator<ConsultationCommentCreateRequest> _consultationCommentCreateValidator;
 
     public ConsultationService(
         IConsultationRepository consultationRepository,
         IInspectionRepository inspectionRepository,
         ICommentRepository commentRepository,
         ICommentMapper commentMapper,
-        IValidator<CommentEditRequest> commentEditValidator
-    )
+        IValidator<CommentEditRequest> commentEditValidator,
+        IDoctorRepository doctorRepository,
+        IValidator<ConsultationCommentCreateRequest> consultationCommentCreateValidator)
     {
         _consultationRepository = consultationRepository;
         _inspectionRepository = inspectionRepository;
         _commentRepository = commentRepository;
         _commentMapper = commentMapper;
         _commentEditValidator = commentEditValidator;
+        _doctorRepository = doctorRepository;
+        _consultationCommentCreateValidator = consultationCommentCreateValidator;
     }
 
     public async Task UpdateComment(Guid commentId, CommentEditRequest request)
@@ -46,5 +51,38 @@ public class ConsultationService : IConsultationService
         }
         
         _commentMapper.UpdateCommentEntity(comment, request);
+    }
+
+    public async Task<Guid> CreateComment(Guid consultationId, Guid doctorId, ConsultationCommentCreateRequest request)
+    {
+        var consultation = await _consultationRepository.GetById(consultationId);
+        if (consultation == null)
+        {
+            throw new ConsultationNotFoundException();
+        }
+
+        var validation = await _consultationCommentCreateValidator.ValidateAsync(request);
+        if (!validation.IsValid)
+        {
+            throw new ValidationException(validation.Errors[0].ErrorMessage);
+        }
+
+        Comment parentComment = null;
+
+        if (request.parentId != null)
+        {
+            parentComment = await _commentRepository.GetById(request.parentId.Value);
+            if (parentComment == null)
+            {
+                throw new CommentNotFoundException("Parent comment not found.");
+            }
+        }
+
+        var doctor = await _doctorRepository.GetById(doctorId);
+
+        Comment comment = _commentMapper.ToEntity(request, doctor, consultation, parentComment);
+        await _commentRepository.Create(comment);
+        
+        return comment.id;
     }
 }
