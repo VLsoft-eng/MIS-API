@@ -1,5 +1,6 @@
 using Application.Abstractions.Repository;
 using Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.RepositoryImpl;
 
@@ -16,5 +17,10 @@ public class ConsultationRepository : IConsultationRepository
     {
         await _context.Consultations.AddAsync(consultation);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<Consultation?> GetById(Guid consultationId)
+    {
+        return await _context.Consultations.FindAsync(consultationId);
     }
 }
