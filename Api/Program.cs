@@ -45,6 +45,7 @@ builder.Services.AddScoped<IValidator<InspectionCreateRequest>, InspectionCreate
 builder.Services.AddScoped<IValidator<ConsultationCreateRequest>, ConsultationCreateValidator>();
 builder.Services.AddScoped<IValidator<InspectionCommentCreateRequest>, InspectionCommentCreateValidator>();
 builder.Services.AddScoped<IValidator<DiagnosisCreateRequest>, DiagnosisCreateValidator>();
+builder.Services.AddScoped<IValidator<CommentEditRequest>, CommentEditValidator>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IInspectionRepository, InspectionRepository>();
 builder.Services.AddScoped<IConsultationRepository, ConsultationRepository>();
@@ -53,6 +54,7 @@ builder.Services.AddScoped<IInspectionMapper, InspectionMapper>();
 builder.Services.AddScoped<IDiagnosisMapper, DiagnosisMapper>();
 builder.Services.AddScoped<ICommentMapper, CommentMapper>();
 builder.Services.AddScoped<IConsultationMapper, ConsultationMapper>();
+builder.Services.AddScoped<IConsultationService, ConsultationService>();
 
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
