@@ -29,4 +29,14 @@ public class CommentRepository :ICommentRepository
     {
         return await _context.Comments.FindAsync(commentId);
     }
+
+    public async Task<List<Comment>> GetCommentsByConsultationId(Guid consultationId)
+    {
+        return await _context.Comments
+            .Include(c => c.author)
+            .Include(c => c.parent)
+            .Include(c => c.consultation)
+            .Where(c => c.consultation.id == consultationId)
+            .ToListAsync();
+    }
 }
