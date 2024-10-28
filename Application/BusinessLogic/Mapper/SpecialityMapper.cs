@@ -17,4 +17,12 @@ public class SpecialityMapper : ISpecialityMapper
 
         return specialitiesDtos;
     }
+
+    public SpecialityDto ToDto(Speciality speciality)
+    {
+        return new SpecialityDto(
+            speciality.id,
+            speciality.createTime,
+            speciality.name);
+    }
 }
