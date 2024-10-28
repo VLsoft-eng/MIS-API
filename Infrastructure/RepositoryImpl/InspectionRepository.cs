@@ -64,81 +64,11 @@ public class InspectionRepository : IInspectionRepository
         return inspections;
     }
 
-    public async Task<List<Inspection>> GetInspectionsByParams(
-        Guid patientId, 
-        bool grouped, 
-        List<Guid> icd, 
-        int page,
-        int size)
+    public async Task<List<Inspection>> GetPatientInspections(Guid patientId)
     {
-        var baseQuery = _context.Diagnoses
-            .Where(d => d.inspection.patient.id == patientId);
-
-        if (icd != null && icd.Any())
-        {
-            baseQuery = baseQuery
-                .Where(d => d.diagnosisType == DiagnosisType.Main 
-                            && icd.Any(root => IsHasEqualRoot(d.icd, root)));
-        }
-
-        var inspectionQuery = baseQuery
-            .Select(d => d.inspection)
-            .Distinct();
-            
-        if (grouped)
-        {
-            inspectionQuery = inspectionQuery.Where(i => i.previousInspection  == null);
-        }
-
-        var inspections = await inspectionQuery
-            .Include(i => i.patient)
-            .Include(i => i.doctor)
-            .Skip((page - 1) * size)
-            .Take(size)
+        return await _context.Inspections
+            .Where(i => i.patient.id == patientId)
             .ToListAsync();
-        return inspections;
-    }
-
-    public async Task<int> GetInspectionsCountByParams(
-        Guid patientId,
-        bool grouped,
-        List<Guid> icd)
-    {
-        var baseQuery = _context.Diagnoses
-            .Where(d => d.inspection.patient.id == patientId);
-
-        if (icd != null && icd.Any())
-        {
-            baseQuery = baseQuery
-                .Where(d => d.diagnosisType == DiagnosisType.Main 
-                            && icd.Any(root => IsHasEqualRoot(d.icd, root)));
-        }
-
-        var inspectionQuery = baseQuery
-            .Select(d => d.inspection)
-            .Distinct();
-            
-        if (grouped)
-        {
-            inspectionQuery = inspectionQuery.Where(i => i.previousInspection  == null);
-        }
-
-        return await inspectionQuery.CountAsync();
-    }
-
-    private bool IsHasEqualRoot(Icd icd, Guid id)
-    {
-        while (icd != null)
-        {
-            if (icd.id == id)
-            {
-                return true;
-            }
-
-            icd = icd.parent;
-        }
-
-        return false;
     }
 
     public async Task<bool> IsHasChild(Guid id)

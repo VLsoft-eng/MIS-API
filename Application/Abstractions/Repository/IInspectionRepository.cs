@@ -8,16 +8,7 @@ public interface IInspectionRepository
     Task<Inspection?> GetById(Guid id);
     Task<Inspection?> GetBaseInspection(Guid id);
     Task<List<Inspection>> GetRootInspectionsByRequest(Guid patientId, string request);
-    Task<List<Inspection>> GetInspectionsByParams(
-        Guid patientId,
-        bool grouped,
-        List<Guid> icd,
-        int page,
-        int size);
-    Task<int> GetInspectionsCountByParams(
-        Guid patientId,
-        bool grouped,
-        List<Guid> icd);
+    Task<List<Inspection>> GetPatientInspections(Guid patientId);
     Task<bool> IsHasChild(Guid id);
 
 }
