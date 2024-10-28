@@ -1,5 +1,6 @@
 using Application.Abstractions.Repository;
 using Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.RepositoryImpl;
 
@@ -21,5 +22,10 @@ public class PatientRepository : IPatientRepository
     public async Task<Patient?> GetById(Guid id)
     {
         return await _context.Patients.FindAsync(id);
+    }
+
+    public async Task<List<Patient>> GetAllPatients()
+    {
+        return await _context.Patients.ToListAsync();
     }
 }
