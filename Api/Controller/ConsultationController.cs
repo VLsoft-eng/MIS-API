@@ -32,6 +32,13 @@ public class ConsultationController : ControllerBase
         Guid doctorId = Guid.Parse(HttpContext.GetUserId());
         return await _consultationService.CreateComment(id, doctorId, request);
     }
+
+    [Authorize]
+    [HttpGet("{id}")]
+    public async Task<ConsultationDto> GetConsultationById(Guid id)
+    {
+        return await _consultationService.GetConsultation(id);
+    }
     
    
 }
