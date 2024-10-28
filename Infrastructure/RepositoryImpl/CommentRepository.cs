@@ -1,5 +1,6 @@
 using Application.Abstractions.Repository;
 using Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.RepositoryImpl;
 
@@ -16,5 +17,16 @@ public class CommentRepository :ICommentRepository
     {
         await _context.Comments.AddAsync(comment);
         await _context.SaveChangesAsync();
+    }
+    
+    public async Task Update(Comment comment)
+    {
+        _context.Entry(comment).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<Comment?> GetById(Guid commentId)
+    {
+        return await _context.Comments.FindAsync(commentId);
     }
 }
