@@ -221,6 +221,11 @@ public class PatientService : IPatientService
         int page,
         int size)
     {
+        if (page <= 0 || size <= 0)
+        {
+            throw new InvalidPaginationParamsException();
+        }
+        
         var patient = await _patientRepository.GetById(patientId);
         if (patient == null)
         {
@@ -321,6 +326,11 @@ public class PatientService : IPatientService
         int size,
         Guid doctorId)
     {
+        if (page <= 0 || size <= 0)
+        {
+            throw new InvalidPaginationParamsException();
+        }
+        
         var patients = await _patientRepository.GetAllPatients();
         patients = patients.Where(patient => patient.name.ToLower().Contains(request.ToLower())).ToList();
 

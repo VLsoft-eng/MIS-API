@@ -129,6 +129,11 @@ public class ConsultationService : IConsultationService
         int page,
         int size)
     {
+        if (page <= 0 || size <= 0)
+        {
+            throw new InvalidPaginationParamsException();
+        }
+        
         var diagnoses = await _diagnosisRepository.GetAllDiagnoses();
         if (icdRoots.Any())
         {
