@@ -12,4 +12,10 @@ public interface ICommentMapper
         Comment parent);
 
     void UpdateCommentEntity(Comment comment, CommentEditRequest request);
+
+    Comment ToEntity(
+        ConsultationCommentCreateRequest request,
+        Doctor doctor,
+        Consultation consultation,
+        Comment parent);
 }

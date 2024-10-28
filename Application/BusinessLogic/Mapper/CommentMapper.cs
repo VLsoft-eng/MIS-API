@@ -28,4 +28,22 @@ public class CommentMapper : ICommentMapper
     {
         comment.content = request.content;
     }
+
+    public Comment ToEntity(
+        ConsultationCommentCreateRequest request,
+        Doctor doctor,
+        Consultation consultation,
+        Comment parent)
+    {
+        return new Comment
+        {
+            id = Guid.NewGuid(),
+            createTime = DateTime.UtcNow,
+            author = doctor,
+            consultation = consultation,
+            content = request.content,
+            modifiedDate = DateTime.UtcNow,
+            parent = parent
+        };
+    }
 }
