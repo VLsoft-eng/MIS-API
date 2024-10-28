@@ -21,6 +21,9 @@ public class ConsultationRepository : IConsultationRepository
 
     public async Task<Consultation?> GetById(Guid consultationId)
     {
-        return await _context.Consultations.FindAsync(consultationId);
+        return await _context.Consultations
+            .Include(c => c.speciality)
+            .Include(c => c.inspection)
+            .FirstOrDefaultAsync(c => c.id == consultationId);
     }
 }
