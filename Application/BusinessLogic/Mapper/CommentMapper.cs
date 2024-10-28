@@ -27,6 +27,7 @@ public class CommentMapper : ICommentMapper
     public void UpdateCommentEntity(Comment comment, CommentEditRequest request)
     {
         comment.content = request.content;
+        comment.modifiedDate = DateTime.UtcNow;
     }
 
     public Comment ToEntity(
@@ -45,5 +46,17 @@ public class CommentMapper : ICommentMapper
             modifiedDate = DateTime.UtcNow,
             parent = parent
         };
+    }
+
+    public CommentDto ToDto(Comment comment)
+    {
+        return new CommentDto(
+            comment.id,
+            comment.createTime,
+            comment.modifiedDate,
+            comment.content,
+            comment.author.id,
+            comment.author.name,
+            comment.parent == null ? null : comment.parent.id);
     }
 }

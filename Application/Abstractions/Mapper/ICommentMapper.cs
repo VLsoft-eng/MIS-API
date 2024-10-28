@@ -18,4 +18,6 @@ public interface ICommentMapper
         Doctor doctor,
         Consultation consultation,
         Comment parent);
+
+    CommentDto ToDto(Comment comment);
 }
