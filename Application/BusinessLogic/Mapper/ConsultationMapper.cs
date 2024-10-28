@@ -16,4 +16,14 @@ public class ConsultationMapper : IConsultationMapper
             speciality = speciality
         };
     }
+
+    public ConsultationDto ToDto(Consultation consultation, SpecialityDto speciality, List<CommentDto> comments)
+    {
+        return new ConsultationDto(
+            consultation.id,
+            consultation.createTime,
+            consultation.inspection.id,
+            speciality,
+            comments);
+    }
 }
