@@ -122,6 +122,12 @@ public class DoctorService : IDoctorService
         {
             throw new ValidationException(validation.Errors[0].ErrorMessage);
         }
+
+        var doctorWithEqualEmail = await _doctorRepository.GetByEmail(request.email);
+        if (doctorWithEqualEmail != null)
+        {
+            throw new EmailAlreadyUsedException();
+        }
         
         _doctorMapper.UpdateDoctorEntity(doctor, request);
         await _doctorRepository.Update(doctor);
