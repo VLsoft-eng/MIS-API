@@ -22,7 +22,11 @@ public class InspectionRepository : IInspectionRepository
 
     public async Task<Inspection?> GetById(Guid id)
     {
-        return await _context.Inspections.FindAsync(id);
+        return await _context.Inspections
+            .Include(i => i.doctor)
+            .Include(i => i.patient)
+            .Include(i => i.previousInspection)
+            .FirstOrDefaultAsync(i => i.id == id);
     }
 
     public async Task<Inspection?> GetBaseInspection(Guid id)
@@ -36,10 +40,9 @@ public class InspectionRepository : IInspectionRepository
 
         var baseInspection = inspection;
 
-        while (inspection.previousInspection != null)
+        while (baseInspection.previousInspection != null)
         {
-            baseInspection = inspection.previousInspection;
-            inspection = inspection.previousInspection;
+            baseInspection = await GetById(baseInspection.previousInspection.id);
         }
 
         return baseInspection;
