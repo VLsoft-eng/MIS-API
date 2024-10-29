@@ -86,4 +86,14 @@ public class InspectionMapper : IInspectionMapper
             inspectionConsultation
         );
     }
+
+    public void UpdateInspectionEntity(Inspection inspection, InspectionEditRequest request)
+    {
+        inspection.anamnesis = request.anamnesis;
+        inspection.complaints = request.complaints;
+        inspection.treatment = request.treatment;
+        inspection.conclusion = request.conclusion;
+        inspection.nextVisitDate = request.nextVisitDate;
+        inspection.deathDate = request.deathDate;
+    }
 }

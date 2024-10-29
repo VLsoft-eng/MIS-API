@@ -26,4 +26,6 @@ public interface IInspectionMapper
         DoctorDto doctor,
         List<DiagnosisDto> diagnoses,
         List<InspectionConsultationDto>? inspectionConsultation);
+
+    void UpdateInspectionEntity(Inspection inspection, InspectionEditRequest request);
 }
