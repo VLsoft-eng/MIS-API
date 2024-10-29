@@ -7,6 +7,6 @@ public record InspectionEditRequest(
     string complaints,
     string treatment,
     Conclusion conclusion,
-    DateTime nextVisitDate,
-    DateTime deathDate,
+    DateTime? nextVisitDate,
+    DateTime? deathDate,
     List<DiagnosisCreateRequest> diagnoses);

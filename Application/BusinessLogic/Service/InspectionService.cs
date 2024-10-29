@@ -1,8 +1,11 @@
 using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
 using Application.Abstractions.Service;
+using Application.BusinessLogic.Validation;
 using Application.Dto;
 using Application.Exceptions;
+using Domain;
+using FluentValidation;
 
 namespace Application.BusinessLogic.Service;
 
@@ -19,6 +22,9 @@ public class InspectionService : IInspectionService
     private readonly ICommentRepository _commentRepository;
     private readonly ICommentMapper _commentMapper;
     private readonly IInspectionMapper _inspectionMapper;
+    private readonly IValidator<InspectionEditRequest> _inspectionEditValidator;
+    private readonly IValidator<DiagnosisCreateRequest> _diagnosisCreateValidator;
+    private readonly IIcdRepository _icdRepository;
     
     public InspectionService(
         IInspectionRepository inspectionRepository,
@@ -31,7 +37,10 @@ public class InspectionService : IInspectionService
         ISpecialityMapper specialityMapper,
         ICommentRepository commentRepository,
         ICommentMapper commentMapper,
-        IInspectionMapper inspectionMapper)
+        IInspectionMapper inspectionMapper,
+        IValidator<InspectionEditRequest> inspectionEditValidator,
+        IValidator<DiagnosisCreateRequest> diagnosisCreateValidator,
+        IIcdRepository icdRepository)
     {
         _inspectionRepository = inspectionRepository;
         _diagnosisRepository = diagnosisRepository;
@@ -44,6 +53,9 @@ public class InspectionService : IInspectionService
         _commentRepository = commentRepository;
         _commentMapper = commentMapper;
         _inspectionMapper = inspectionMapper;
+        _inspectionEditValidator = inspectionEditValidator;
+        _diagnosisCreateValidator = diagnosisCreateValidator;
+        _icdRepository = icdRepository;
     }
 
     public async Task<InspectionDto> GetInspectionById(Guid id)
@@ -84,5 +96,52 @@ public class InspectionService : IInspectionService
         
         return _inspectionMapper.ToDto(inspection, baseInspection == null ? null : baseInspection.id, patientDto, doctorDto, diagnosisDtos,
             consultationDtos);
+    }
+
+    public async Task EditInspection(Guid inspectionId, InspectionEditRequest request, Guid doctorId)
+    {
+        var inspection = await _inspectionRepository.GetById(inspectionId);
+        if (inspection == null)
+        {
+            throw new InspectionNotFoundException();
+        }
+
+        if (inspection.doctor.id != doctorId)
+        {
+            throw new DoesntHaveRightsException();
+        }
+
+        var validation = await _inspectionEditValidator.ValidateAsync(request);
+        if (!validation.IsValid)
+        {
+            throw new ValidationException(validation.Errors[0].ErrorMessage);
+        }
+        
+        var newDiagnoses = request.diagnoses;
+        var newDiagnosesEntities = new List<Diagnosis>();
+        foreach (var diagnosis in newDiagnoses)
+        {
+            var diagnosisValidation = await _diagnosisCreateValidator.ValidateAsync(diagnosis);
+            if (!diagnosisValidation.IsValid)
+            {
+                throw new ValidationException(diagnosisValidation.Errors[0].ErrorMessage);
+            }
+
+            var icd = await _icdRepository.GetById(diagnosis.icdDiagnosisId);
+            if (icd == null)
+            {
+                throw new IcdNotFoundException();
+            }
+
+            var diagnosisEntity = _diagnosisMapper.ToEntity(diagnosis, icd, inspection);
+            newDiagnosesEntities.Add(diagnosisEntity);
+        }
+        
+        _inspectionMapper.UpdateInspectionEntity(inspection, request);
+        await _inspectionRepository.Update(inspection);
+
+
+        await _diagnosisRepository.DeleteAllInspectionDiagnoses(inspectionId);
+        await _diagnosisRepository.CreateRange(newDiagnosesEntities);
     }
 }
