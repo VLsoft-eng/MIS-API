@@ -8,6 +8,7 @@ using Application.BusinessLogic.Mapper;
 using Application.BusinessLogic.Service;
 using Application.BusinessLogic.Validation;
 using Application.Dto;
+using Domain;
 using FluentValidation;
 using Infrastructure;
 using Infrastructure.Auth;
@@ -56,6 +57,7 @@ builder.Services.AddScoped<IConsultationMapper, ConsultationMapper>();
 builder.Services.AddScoped<IConsultationService, ConsultationService>();
 builder.Services.AddScoped<IValidator<ConsultationCommentCreateRequest>, ConsultationCommentCreateValidator>();
 builder.Services.AddScoped<IInspectionService, InspectionService>();
+builder.Services.AddScoped<IValidator<InspectionEditRequest>, InspectionEditValidator>();
 
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
