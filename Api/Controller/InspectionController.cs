@@ -31,4 +31,11 @@ public class InspectionController : ControllerBase
         var  doctorId = Guid.Parse(HttpContext.GetUserId());
         await _inspectionService.EditInspection(id, request, doctorId);
     }
+
+    [Authorize]
+    [HttpGet("{id}/chain")]
+    public async Task<List<InspectionFullDto>> GetInspectionChain(Guid id)
+    {
+        return await _inspectionService.GetChainByRoot(id);
+    }
 }
