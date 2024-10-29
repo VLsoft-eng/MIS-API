@@ -26,4 +26,20 @@ public class ConsultationMapper : IConsultationMapper
             speciality,
             comments);
     }
+    
+    public InspectionConsultationDto ToInspectionConsultationDto(
+        Consultation consultation,
+        SpecialityDto speciality,
+        InspectionCommentDto rootComment,
+        Inspection inspection,
+        int commentNumber)
+    {
+        return new InspectionConsultationDto(
+            consultation.id,
+            consultation.createTime,
+            inspection.id,
+            speciality,
+            rootComment,
+            commentNumber);
+    }
 }

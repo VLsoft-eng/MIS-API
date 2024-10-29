@@ -20,4 +20,5 @@ public interface ICommentMapper
         Comment parent);
 
     CommentDto ToDto(Comment comment);
+    InspectionCommentDto ToInspectionCommentDto(Comment comment, DoctorDto doctor);
 }

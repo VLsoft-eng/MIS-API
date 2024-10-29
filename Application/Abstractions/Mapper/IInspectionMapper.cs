@@ -18,4 +18,12 @@ public interface IInspectionMapper
         DiagnosisDto diagnosis,
         bool hasChain,
         bool hasNested);
+
+    InspectionDto ToDto(
+        Inspection inspection,
+        Guid? baseInspectionId,
+        PatientDto patient,
+        DoctorDto doctor,
+        List<DiagnosisDto> diagnoses,
+        List<InspectionConsultationDto>? inspectionConsultation);
 }

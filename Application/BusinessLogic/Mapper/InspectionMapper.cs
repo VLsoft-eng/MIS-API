@@ -59,4 +59,31 @@ public class InspectionMapper : IInspectionMapper
             hasNested
         );
     }
+
+    public InspectionDto ToDto(
+        Inspection inspection,
+        Guid? baseInspectionId,
+        PatientDto patient,
+        DoctorDto doctor,
+        List<DiagnosisDto> diagnoses,
+        List<InspectionConsultationDto>? inspectionConsultation)
+    {
+        return new InspectionDto(
+            inspection.id,
+            inspection.createTime,
+            inspection.date,
+            inspection.anamnesis,
+            inspection.complaints,
+            inspection.treatment,
+            inspection.conclusion,
+            inspection.nextVisitDate,
+            inspection.deathDate,
+            baseInspectionId,
+            inspection.previousInspection == null ? null : inspection.previousInspection.id,
+            patient,
+            doctor,
+            diagnoses,
+            inspectionConsultation
+        );
+    }
 }

@@ -55,6 +55,7 @@ builder.Services.AddScoped<ICommentMapper, CommentMapper>();
 builder.Services.AddScoped<IConsultationMapper, ConsultationMapper>();
 builder.Services.AddScoped<IConsultationService, ConsultationService>();
 builder.Services.AddScoped<IValidator<ConsultationCommentCreateRequest>, ConsultationCommentCreateValidator>();
+builder.Services.AddScoped<IInspectionService, InspectionService>();
 
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));

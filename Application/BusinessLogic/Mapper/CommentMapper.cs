@@ -59,4 +59,15 @@ public class CommentMapper : ICommentMapper
             comment.author.name,
             comment.parent == null ? null : comment.parent.id);
     }
+
+    public InspectionCommentDto ToInspectionCommentDto(Comment comment, DoctorDto doctor)
+    {
+        return new InspectionCommentDto(
+            comment.id,
+            comment.createTime,
+            comment.parent == null ? null : comment.parent.id,
+            comment.content,
+            doctor, 
+            comment.modifiedDate);
+    }
 }
