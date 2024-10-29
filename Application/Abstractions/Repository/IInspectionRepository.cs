@@ -13,5 +13,6 @@ public interface IInspectionRepository
     Task<List<Inspection>> GetDoctorInspections(Guid doctorId);
     Task<List<Inspection>> GetAllInspections();
     Task Update(Inspection inspection);
+    Task<List<Inspection>> GetChainByRoot(Guid rootId);
 
 }

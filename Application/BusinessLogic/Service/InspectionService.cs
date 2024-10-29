@@ -144,4 +144,31 @@ public class InspectionService : IInspectionService
         await _diagnosisRepository.DeleteAllInspectionDiagnoses(inspectionId);
         await _diagnosisRepository.CreateRange(newDiagnosesEntities);
     }
+
+    public async Task<List<InspectionFullDto>> GetChainByRoot(Guid rootId)
+    {
+        var rootInspection = await _inspectionRepository.GetById(rootId);
+        if (rootInspection == null)
+        {
+            throw new InspectionNotFoundException();
+        }
+
+        var chain = await _inspectionRepository.GetChainByRoot(rootId);
+
+        var inspectionFullDtos = new List<InspectionFullDto>();
+        
+        foreach (var inspection in chain)
+        {
+            bool hasNested = await _inspectionRepository.IsHasChild(inspection.id);
+            bool hasChain = hasNested || inspection.previousInspection != null;
+            
+            var diagnosis = await _diagnosisRepository.GetMainDiagnosesByInspectionId(inspection.id);
+            var diagnosisDto = _diagnosisMapper.ToDto(diagnosis.FirstOrDefault());
+            
+            var inspectionFullDto = _inspectionMapper.ToInspectionFullDto(inspection, diagnosisDto, hasChain, hasNested);
+            inspectionFullDtos.Add(inspectionFullDto);
+        }
+
+        return inspectionFullDtos;
+    }
 }

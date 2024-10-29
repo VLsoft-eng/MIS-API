@@ -95,4 +95,23 @@ public class InspectionRepository : IInspectionRepository
             .Include(i => i.previousInspection)
             .AnyAsync(i => i.previousInspection.id != null && i.previousInspection.id == id);
     }
+
+    public async Task<List<Inspection>> GetChainByRoot(Guid rootId)
+    {
+        var allInspections = await _context.Inspections
+            .Include(i => i.previousInspection)
+            .ToListAsync();
+
+        var chain = new List<Inspection>();
+        var currentInspection = allInspections.FirstOrDefault(i => i.id == rootId);
+        
+        while (currentInspection != null)
+        {
+            chain.Add(currentInspection);
+            currentInspection = allInspections
+                .FirstOrDefault(i => i.id == currentInspection.previousInspection?.id);
+        }
+
+        return chain;
+    }
 }
