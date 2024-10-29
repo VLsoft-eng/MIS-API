@@ -35,4 +35,13 @@ public class ConsultationRepository : IConsultationRepository
             .Where(c => c.speciality.id == id)
             .ToListAsync();
     }
+
+    public async Task<List<Consultation>> GetByInspectionId(Guid id)
+    {
+        return await _context.Consultations
+            .Include(c => c.speciality)
+            .Include(c => c.inspection)
+            .Where(c => c.inspection.id == id)
+            .ToListAsync();
+    }
 }
