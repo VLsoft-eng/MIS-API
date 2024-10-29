@@ -9,4 +9,6 @@ public interface IDiagnosisRepository
     Task<List<Diagnosis>> GetPatientsDiagnoses(Guid patientId);
     Task<List<Diagnosis>> GetAllDiagnoses();
     Task<List<Diagnosis>?> GetDiagnosesByInspectionId(Guid id);
+    Task DeleteAllInspectionDiagnoses(Guid inspectionId);
+    Task CreateRange(List<Diagnosis> diagnoses);
 }

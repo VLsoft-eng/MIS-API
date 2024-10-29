@@ -58,4 +58,24 @@ public class DiagnosisRepository : IDiagnosisRepository
             .Include(d => d.icd)
             .ToListAsync();
     }
+
+    public async Task DeleteAllInspectionDiagnoses(Guid inspectionId)
+    {
+        var diagnosesToDelete = await _context.Diagnoses
+            .Include(d => d.inspection)
+            .Where(d => d.inspection.id == inspectionId)
+            .ToListAsync();
+
+        if (diagnosesToDelete.Any())
+        {
+            _context.Diagnoses.RemoveRange(diagnosesToDelete);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task CreateRange(List<Diagnosis> diagnoses)
+    {
+        await _context.Diagnoses.AddRangeAsync(diagnoses);
+        await _context.SaveChangesAsync();
+    }
 }
