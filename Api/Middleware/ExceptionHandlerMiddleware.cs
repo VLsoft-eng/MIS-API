@@ -84,6 +84,12 @@ public class ExceptionHandlerMiddleware
             var error = new ErrorResponse(StatusCodes.Status404NotFound, e.Message);
             httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             await httpContext.Response.WriteAsJsonAsync(error);
-        }  
+        }
+        catch (PatientNotFoundException e)
+        {
+            var error = new ErrorResponse(StatusCodes.Status404NotFound, e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+            await httpContext.Response.WriteAsJsonAsync(error);
+        }
     }
 }
