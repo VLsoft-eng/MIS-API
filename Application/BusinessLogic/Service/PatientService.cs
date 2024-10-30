@@ -294,28 +294,6 @@ public class PatientService : IPatientService
         return new InspectionPagedListDto(inspectionFullDtos, pageInfo);
     }
 
-    private async Task<bool> IsHasIcdRoot(Icd icd, Guid rootId)
-    {
-        var currentIcd = icd;
-
-        while (currentIcd != null)
-        {
-            if (icd.id == rootId)
-            {
-                return true;
-            }
-
-            if (icd.parent == null)
-            {
-                return false;
-            }
-
-            currentIcd = await _icdRepository.GetById(currentIcd.parent.id);
-        }
-
-        return false;
-    }
-
     public async Task<PatientPagedListDto> GetPatientsByParams(
         string request,
         Conclusion conclusion,
@@ -431,5 +409,27 @@ public class PatientService : IPatientService
         var patientPagedListDto = new PatientPagedListDto(patientDtos, pageInfo);
 
         return patientPagedListDto;
+    }
+    
+    private async Task<bool> IsHasIcdRoot(Icd icd, Guid rootId)
+    {
+        var currentIcd = icd;
+
+        while (currentIcd != null)
+        {
+            if (icd.id == rootId)
+            {
+                return true;
+            }
+
+            if (icd.parent == null)
+            {
+                return false;
+            }
+
+            currentIcd = await _icdRepository.GetById(currentIcd.parent.id);
+        }
+
+        return false;
     }
 }
