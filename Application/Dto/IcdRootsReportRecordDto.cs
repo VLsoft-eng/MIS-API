@@ -6,4 +6,4 @@ public record IcdRootsReportRecordDto (
     string patientName,
     DateTime patientBirtday,
     Gender Gender,
-    int visitsByRoot);
+    Dictionary<Guid, int> visitsByRoot);
