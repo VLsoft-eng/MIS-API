@@ -58,6 +58,8 @@ builder.Services.AddScoped<IConsultationService, ConsultationService>();
 builder.Services.AddScoped<IValidator<ConsultationCommentCreateRequest>, ConsultationCommentCreateValidator>();
 builder.Services.AddScoped<IInspectionService, InspectionService>();
 builder.Services.AddScoped<IValidator<InspectionEditRequest>, InspectionEditValidator>();
+builder.Services.AddScoped<IReportMapper, ReportMapper>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));

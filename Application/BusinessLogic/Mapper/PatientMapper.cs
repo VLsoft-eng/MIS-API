@@ -27,4 +27,15 @@ public class PatientMapper : IPatientMapper
             entity.birtday,
             entity.gender);
     }
+
+    public IcdRootsReportRecordDto ToIcdRootsReportRecordDto(
+        Patient patient, 
+        Dictionary<Guid, int> visits)
+    {
+        return new IcdRootsReportRecordDto(
+            patient.name,
+            patient.birtday,
+            patient.gender,
+            visits);
+    }
 }
