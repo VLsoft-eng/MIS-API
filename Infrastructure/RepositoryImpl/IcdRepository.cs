@@ -41,5 +41,25 @@ public class IcdRepository : IIcdRepository
             .Include(i => i.parent)
             .FirstOrDefaultAsync(i => i.id == id);
     }
+
+    public async Task<Icd> GetRootByIcdId(Guid id)
+    {
+        var icd = await _context.Icds
+            .Include(i => i.parent)
+            .Where(i => i.id == id)
+            .FirstOrDefaultAsync();
+
+        while (icd != null)
+        {
+            if (icd.parent == null)
+            {
+                return icd;
+            }
+
+            icd = await GetById(icd.parent.id);
+        }
+
+        return icd;
+    } 
     
 }

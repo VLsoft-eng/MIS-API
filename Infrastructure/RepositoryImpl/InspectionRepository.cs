@@ -114,4 +114,12 @@ public class InspectionRepository : IInspectionRepository
 
         return chain;
     }
+
+    public async Task<List<Inspection>> GetInspectionsInTimeInterval(DateTime start, DateTime end)
+    {
+        return await _context.Inspections
+            .Include(i => i.patient)
+            .Where(i => i.date >= start && i.date <= end)
+            .ToListAsync();
+    }
 }

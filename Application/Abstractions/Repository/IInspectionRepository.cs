@@ -14,5 +14,6 @@ public interface IInspectionRepository
     Task<List<Inspection>> GetAllInspections();
     Task Update(Inspection inspection);
     Task<List<Inspection>> GetChainByRoot(Guid rootId);
+    Task<List<Inspection>> GetInspectionsInTimeInterval(DateTime start, DateTime end);
 
 }

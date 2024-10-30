@@ -8,4 +8,5 @@ public interface IIcdRepository
     Task<List<Icd>> GetByNameAndParams(string name, int page, int size);
     Task<int> GetCountByName(string name);
     Task<Icd?> GetById(Guid id);
+    Task<Icd> GetRootByIcdId(Guid id);
 }
