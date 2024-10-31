@@ -33,7 +33,6 @@ public class InspectionService : IInspectionService
         IConsultationMapper consultationMapper,
         ISpecialityMapper specialityMapper,
         ICommentService commentService,
-        ICommentMapper commentMapper,
         IInspectionMapper inspectionMapper,
         IValidator<InspectionEditRequest> inspectionEditValidator,
         IIcdRepository icdRepository,

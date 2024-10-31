@@ -19,7 +19,6 @@ public class ConsultationService : IConsultationService
         IConsultationRepository consultationRepository,
         ISpecialityMapper specialityMapper,
         IConsultationMapper consultationMapper,
-        IIcdRepository icdRepository,
         ICommentService commentService)
     {
         _consultationRepository = consultationRepository;
