@@ -38,6 +38,7 @@ public class CommentRepository :ICommentRepository
             .Include(c => c.author)
             .Include(c => c.parent)
             .Include(c => c.consultation)
+            .Include(c => c.author.speciality)
             .Where(c => c.consultation.id == consultationId)
             .ToListAsync();
     }

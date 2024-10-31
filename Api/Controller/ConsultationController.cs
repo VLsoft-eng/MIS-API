@@ -12,17 +12,24 @@ namespace Api.Controller;
 public class ConsultationController : ControllerBase
 {
     private readonly IConsultationService _consultationService;
+    private readonly ICommentService _commentService;
+    private readonly IInspectionService _inspectionService;
 
-    public ConsultationController(IConsultationService consultationService)
+    public ConsultationController(
+        IConsultationService consultationService,
+        ICommentService commentService,
+        IInspectionService inspectionService)
     {
         _consultationService = consultationService;
+        _commentService = commentService;
+        _inspectionService = inspectionService;
     }
 
     [Authorize]
     [HttpPut("comment/{id}")]
     public async Task EditComment(Guid id, [FromBody] CommentEditRequest request)
     {
-        await _consultationService.UpdateComment(id, request);
+        await _commentService.UpdateComment(id, request);
     }
 
     [Authorize]
@@ -30,7 +37,7 @@ public class ConsultationController : ControllerBase
     public async Task<Guid> CreateComment(Guid id, [FromBody] ConsultationCommentCreateRequest request)
     {
         Guid doctorId = Guid.Parse(HttpContext.GetUserId());
-        return await _consultationService.CreateComment(id, doctorId, request);
+        return await _commentService.CreateComment(id, doctorId, request);
     }
 
     [Authorize]
@@ -49,7 +56,7 @@ public class ConsultationController : ControllerBase
         [FromQuery] int size = 5)
     {
         Guid doctorId = Guid.Parse(HttpContext.GetUserId());
-        return await _consultationService.GetInspectionsWithDoctorSpeciality(doctorId, grouped, icdRoots, page, size);
+        return await _inspectionService.GetInspectionsWithDoctorSpeciality(doctorId, grouped, icdRoots, page, size);
     }
     
    

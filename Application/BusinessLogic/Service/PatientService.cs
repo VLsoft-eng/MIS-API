@@ -18,18 +18,17 @@ public class PatientService : IPatientService
     private readonly IValidator<InspectionCreateRequest> _inspectionCreateValidator;
     private readonly IValidator<ConsultationCreateRequest> _consultationCreateValidator;
     private readonly IValidator<InspectionCommentCreateRequest> _inspectionCreateCommentValidator;
-    private readonly IValidator<DiagnosisCreateRequest> _diagnosisCreateValidator;
     private readonly IIcdRepository _icdRepository;
     private readonly ISpecialityRepository _specialityRepository;
     private readonly ICommentRepository _commentRepository;
     private readonly IInspectionRepository _inspectionRepository;
     private readonly IConsultationRepository _consultationRepository;
-    private readonly IDiagnosisRepository _diagnosisRepository;
     private readonly IInspectionMapper _inspectionMapper;
     private readonly IDoctorRepository _doctorRepository;
-    private readonly IDiagnosisMapper _diagnosisMapper;
     private readonly ICommentMapper _commentMapper;
     private readonly IConsultationMapper _consultationMapper;
+    private readonly IDiagnosisService _diagnosisService;
+    private readonly IDiagnosisRepository _diagnosisRepository;
 
     public PatientService(
         IPatientRepository patientRepository,
@@ -38,18 +37,17 @@ public class PatientService : IPatientService
         IValidator<InspectionCreateRequest> inspectionCreateValidator,
         IValidator<ConsultationCreateRequest> consultationCreateValidator,
         IValidator<InspectionCommentCreateRequest> inspectionCreateCommentValidator,
-        IValidator<DiagnosisCreateRequest> diagnosisCreateValidator,
         IIcdRepository icdRepository,
         ISpecialityRepository specialityRepository,
         ICommentRepository commentRepository,
         IInspectionRepository inspectionRepository,
         IConsultationRepository consultationRepository,
-        IDiagnosisRepository diagnosisRepository,
         IInspectionMapper inspectionMapper,
         IDoctorRepository doctorRepository,
-        IDiagnosisMapper diagnosisMapper,
         ICommentMapper commentMapper,
-        IConsultationMapper consultationMapper)
+        IConsultationMapper consultationMapper,
+        IDiagnosisService diagnosisService,
+        IDiagnosisRepository diagnosisRepository)
     {
         _patientRepository = patientRepository;
         _patientMapper = patientMapper;
@@ -57,18 +55,17 @@ public class PatientService : IPatientService
         _inspectionCreateValidator = inspectionCreateValidator;
         _consultationCreateValidator = consultationCreateValidator;
         _inspectionCreateCommentValidator = inspectionCreateCommentValidator;
-        _diagnosisCreateValidator = diagnosisCreateValidator;
         _icdRepository = icdRepository;
         _specialityRepository = specialityRepository;
         _commentRepository = commentRepository;
         _inspectionRepository = inspectionRepository;
         _consultationRepository = consultationRepository;
-        _diagnosisRepository = diagnosisRepository;
         _inspectionMapper = inspectionMapper;
         _doctorRepository = doctorRepository;
-        _diagnosisMapper = diagnosisMapper;
         _commentMapper = commentMapper;
         _consultationMapper = consultationMapper;
+        _diagnosisService = diagnosisService;
+        _diagnosisRepository = diagnosisRepository;
     }
 
     public async Task Create(PatientCreateRequest request)
@@ -140,22 +137,6 @@ public class PatientService : IPatientService
             }
         }
 
-        foreach (var diagnosis in request.diagnoses)
-        {
-            var diagnosisValidation = await _diagnosisCreateValidator.ValidateAsync(diagnosis);
-            if (!diagnosisValidation.IsValid)
-            {
-                throw new ValidationException(diagnosisValidation.Errors[0].ErrorMessage);
-            }
-
-            var icd = await _icdRepository.GetById(diagnosis.icdDiagnosisId);
-
-            if (icd == null)
-            {
-                throw new IcdNotFoundException();
-            }
-        }
-
         var doctor = await _doctorRepository.GetById(doctorId);
 
         Inspection inspection = _inspectionMapper.ToEntity(request, doctor, patient, previousInspection);
@@ -164,9 +145,14 @@ public class PatientService : IPatientService
 
         foreach (var diagnosis in request.diagnoses)
         {
-            Icd icd = await _icdRepository.GetById(diagnosis.icdDiagnosisId);
-            var diagnosisEntity = _diagnosisMapper.ToEntity(diagnosis, icd, inspection);
-            await _diagnosisRepository.Create(diagnosisEntity);
+            var icd = await _icdRepository.GetById(diagnosis.icdDiagnosisId);
+
+            if (icd == null)
+            {
+                throw new IcdNotFoundException();
+            }
+            
+            await _diagnosisService.CreateDiagnosis(diagnosis, inspection, icd);
         }
 
         if (request.consultations != null)
@@ -198,11 +184,8 @@ public class PatientService : IPatientService
         List<InspectionShortDto> inspectionShortDtos = new List<InspectionShortDto>();
         foreach (var inspection in inspections)
         {
-            List<Diagnosis> diagnoses = await _diagnosisRepository.GetMainDiagnosesByInspectionId(inspection.id);
-            var mainDiagnosis = diagnoses[0];
-            var diagnosisDto = _diagnosisMapper.ToDto(mainDiagnosis);
-            
-            var inspectionShortDto = _inspectionMapper.ToInspectionShortDto(inspection, diagnosisDto);
+            var mainDiagnosisDto = await _diagnosisService.GetMainDIagnosisByInspectionId(inspection.id);
+            var inspectionShortDto = _inspectionMapper.ToInspectionShortDto(inspection, mainDiagnosisDto);
             inspectionShortDtos.Add(inspectionShortDto);
         }
 
@@ -253,11 +236,9 @@ public class PatientService : IPatientService
             bool hasNested = await _inspectionRepository.IsHasChild(inspection.id);
             bool hasChain = (hasNested || inspection.previousInspection != null);
 
-            var diagnosis = await _diagnosisRepository.GetMainDiagnosesByInspectionId(inspection.id);
-            var diagnosisDto = _diagnosisMapper.ToDto(diagnosis[0]);
-
+            var mainDiagnosisDto = await _diagnosisService.GetMainDIagnosisByInspectionId(inspection.id);
             var inspectionFullDto =
-                _inspectionMapper.ToInspectionFullDto(inspection, diagnosisDto, hasChain, hasNested);
+                _inspectionMapper.ToInspectionFullDto(inspection, mainDiagnosisDto, hasChain, hasNested);
             inspectionFullDtos.Add(inspectionFullDto);
         }
 
@@ -296,7 +277,7 @@ public class PatientService : IPatientService
             patients = await FilterBySheduledVisits(patients);
         }
         
-       patients = await FilterPatientsByConclusion(patients, conclusion);
+        patients = await FilterPatientsByConclusion(patients, conclusion);
         
         var lastInspectionsDict = new Dictionary<Guid, DateTime?>();
         foreach (var patient in patients)

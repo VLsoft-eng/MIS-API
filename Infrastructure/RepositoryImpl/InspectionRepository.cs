@@ -122,4 +122,16 @@ public class InspectionRepository : IInspectionRepository
             .Where(i => i.date >= start && i.date <= end)
             .ToListAsync();
     }
+
+    public async Task<List<Inspection>> GetMissedInspections()
+    {
+        return await _context.Inspections
+            .Where(i =>
+                i.date <= DateTime.UtcNow &&
+                i.conclusion != Conclusion.Death &&
+                i.nextVisitDate == null)
+            .Include(i => i.doctor)
+            .Include(i => i.patient)
+            .ToListAsync();
+    }
 }

@@ -20,13 +20,14 @@ public class DiagnosisRepository : IDiagnosisRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<Diagnosis>> GetMainDiagnosesByInspectionId(Guid inspectionId)
+    public async Task<Diagnosis> GetMainDiagnosesByInspectionId(Guid inspectionId)
     {
-        return await _context.Diagnoses
+        var diagnoses =  await _context.Diagnoses
             .Include(d => d.icd) 
             .Where(d => d.inspection.id == inspectionId)
             .Where(d => d.diagnosisType == DiagnosisType.Main)
             .ToListAsync();
+        return diagnoses[0];
     }
 
     public async Task<List<Diagnosis>?> GetDiagnosesByInspectionId(Guid id)
@@ -76,6 +77,17 @@ public class DiagnosisRepository : IDiagnosisRepository
     public async Task CreateRange(List<Diagnosis> diagnoses)
     {
         await _context.Diagnoses.AddRangeAsync(diagnoses);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAllDiagnosesByInspection(Guid inspectionId)
+    {
+        var diagnosesToDelete = await _context.Diagnoses
+            .Include(d => d.inspection)
+            .Where(d => d.inspection.id == inspectionId)
+            .ToListAsync();
+
+        _context.Diagnoses.RemoveRange(diagnosesToDelete);
         await _context.SaveChangesAsync();
     }
 }

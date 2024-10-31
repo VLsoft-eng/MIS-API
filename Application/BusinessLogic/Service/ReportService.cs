@@ -8,21 +8,24 @@ namespace Application.BusinessLogic.Service;
 
 public class ReportService : IReportService
 {
+    private readonly IDiagnosisService _diagnosisService;
     private readonly IDiagnosisRepository _diagnosisRepository;
     private readonly IIcdRepository _icdRepository;
     private readonly IPatientMapper _patientMapper;
     private readonly IReportMapper _reportMapper;
     
     public ReportService(
-        IDiagnosisRepository diagnosisRepository,
+        IDiagnosisService diagnosisService,
         IIcdRepository icdRepository,
         IPatientMapper patientMapper,
-        IReportMapper reportMapper)
+        IReportMapper reportMapper,
+        IDiagnosisRepository diagnosisRepository)
     {
-        _diagnosisRepository = diagnosisRepository;
         _icdRepository = icdRepository;
         _patientMapper = patientMapper;
         _reportMapper = reportMapper;
+        _diagnosisService = diagnosisService;
+        _diagnosisRepository = diagnosisRepository;
     }
 
     public async Task<IcdRootsReportDto> GetReport(DateTime start, DateTime end, List<Guid> icdRoots)
@@ -30,7 +33,7 @@ public class ReportService : IReportService
         var diagnoses = await _diagnosisRepository.GetAllDiagnoses();
         if (icdRoots.Any())
         {
-            diagnoses = await FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
+            diagnoses = await _diagnosisService.FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
         }
         else
         {
@@ -87,31 +90,5 @@ public class ReportService : IReportService
         var report = _reportMapper.ToDto(start, end, icdRoots, reportData, totalVisitsByRoot);
 
         return report;
-    }
-    
-    private async Task<List<Diagnosis>> FilterDiagnosisByIcdRoots(List<Diagnosis> diagnoses, List<Guid> icdRoots)
-    {
-        var filteredDiagnoses = new List<Diagnosis>();
-        foreach (var diagnosis in diagnoses)
-        {
-            bool hasRoot = false;
-
-            foreach (var root in icdRoots)
-            {
-                var diagnosisIcdRoot = await _icdRepository.GetRootByIcdId(diagnosis.icd.id);
-                if (diagnosisIcdRoot.id == root)
-                {
-                    hasRoot = true;
-                    break; 
-                }
-            }
-
-            if (hasRoot)
-            {
-                filteredDiagnoses.Add(diagnosis);
-            }
-        }
-
-        return filteredDiagnoses;
     }
 }
