@@ -137,28 +137,7 @@ public class ConsultationService : IConsultationService
         var diagnoses = await _diagnosisRepository.GetAllDiagnoses();
         if (icdRoots.Any())
         {
-            var filteredDiagnoses = new List<Diagnosis>();
-
-            foreach (var diagnosis in diagnoses)
-            {
-                bool hasRoot = false;
-
-                foreach (var root in icdRoots)
-                {
-                    if (await IsHasIcdRoot(diagnosis.icd, root))
-                    {
-                        hasRoot = true;
-                        break; 
-                    }
-                }
-
-                if (hasRoot)
-                {
-                    filteredDiagnoses.Add(diagnosis);
-                }
-            }
-
-            diagnoses = filteredDiagnoses;
+            await FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
         }
         
         var inspections = diagnoses.Select(d => d.inspection).Distinct().ToList();
@@ -212,25 +191,29 @@ public class ConsultationService : IConsultationService
         return new InspectionPagedListDto(inspectionFullDtos, pageInfo);
     }
 
-    private async Task<bool> IsHasIcdRoot(Icd icd, Guid rootId)
+    private async Task FilterDiagnosisByIcdRoots(List<Diagnosis> diagnoses, List<Guid> icdRoots)
     {
-        var currentIcd = icd;
-
-        while (currentIcd != null)
+        var filteredDiagnoses = new List<Diagnosis>();
+        foreach (var diagnosis in diagnoses)
         {
-            if (icd.id == rootId)
+            bool hasRoot = false;
+
+            foreach (var root in icdRoots)
             {
-                return true;
+                var diagnosisIcdRoot = await _icdRepository.GetRootByIcdId(diagnosis.icd.id);
+                if (diagnosisIcdRoot.id == root)
+                {
+                    hasRoot = true;
+                    break; 
+                }
             }
 
-            if (icd.parent == null)
+            if (hasRoot)
             {
-                return false;
+                filteredDiagnoses.Add(diagnosis);
             }
-
-            currentIcd = await _icdRepository.GetById(currentIcd.parent.id);
         }
 
-        return false;
+        diagnoses = filteredDiagnoses;
     }
 }

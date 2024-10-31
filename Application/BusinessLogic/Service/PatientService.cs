@@ -108,17 +108,12 @@ public class PatientService : IPatientService
         {
             throw new ValidationException(inspectionValidation.Errors[0].ErrorMessage);
         }
-
-        Inspection previousInspection = null;
-
-        if (request.previousInspectionId != null)
+        
+        var previousInspectionId = request.previousInspectionId;
+        var previousInspection= await _inspectionRepository.GetById(previousInspectionId.Value);
+        if (previousInspection == null)
         {
-            var previousInspectionId = request.previousInspectionId ?? Guid.NewGuid();
-            previousInspection = await _inspectionRepository.GetById(previousInspectionId);
-            if (previousInspection == null)
-            {
-                throw new InspectionNotFoundException();
-            }
+            throw new InspectionNotFoundException();
         }
 
         if (request.consultations != null)
@@ -235,28 +230,7 @@ public class PatientService : IPatientService
         var diagnoses = await _diagnosisRepository.GetPatientsDiagnoses(patientId);
         if (icdRoots.Any())
         {
-            var filteredDiagnoses = new List<Diagnosis>();
-
-            foreach (var diagnosis in diagnoses)
-            {
-                bool hasRoot = false;
-
-                foreach (var root in icdRoots)
-                {
-                    if (await IsHasIcdRoot(diagnosis.icd, root))
-                    {
-                        hasRoot = true;
-                        break; 
-                    }
-                }
-
-                if (hasRoot)
-                {
-                    filteredDiagnoses.Add(diagnosis);
-                }
-            }
-
-            diagnoses = filteredDiagnoses;
+            diagnoses = await FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
         }
         
         var inspections = diagnoses.Select(d => d.inspection).Distinct().ToList();
@@ -314,45 +288,17 @@ public class PatientService : IPatientService
 
         if (onlyMine)
         {
-            var inspections = await _inspectionRepository.GetDoctorInspections(doctorId);
-            var patientIdsWithInspections = inspections.Select(inspection => inspection.patient.id).Distinct().ToList();
-
-            patients = patients
-                .Where(patient => patientIdsWithInspections.Contains(patient.id))
-                .ToList();
+            patients = await FilterPatientsByDoctor(patients, doctorId);
         }
 
         if (scheduledVisits)
         {
-            var allInspections = await _inspectionRepository.GetAllInspections();
-            var patientsWithScheduledVisits = allInspections
-                .Where(i => i.nextVisitDate != null && i.nextVisitDate > DateTime.UtcNow)
-                .Select(i => i.patient.id)
-                .Distinct()
-                .ToList();
-
-            patients = patients
-                .Where(p => patientsWithScheduledVisits.Contains(p.id))
-                .ToList();
-        }
-
-        if (conclusion != null)
-        {
-            var allInspections = await _inspectionRepository.GetAllInspections();
-            var patientsWithCurrentConclusion = allInspections
-                .Where(i => i.conclusion == conclusion)
-                .Select(i => i.patient.id)
-                .Distinct()
-                .ToList();
-
-            patients = patients
-                .Where(p => patientsWithCurrentConclusion.Contains(p.id))
-                .ToList();
+            patients = await FilterBySheduledVisits(patients);
         }
         
+       patients = await FilterPatientsByConclusion(patients, conclusion);
         
         var lastInspectionsDict = new Dictionary<Guid, DateTime?>();
-        
         foreach (var patient in patients)
         {
             var inspections = await _inspectionRepository.GetPatientInspections(patient.id); 
@@ -360,8 +306,30 @@ public class PatientService : IPatientService
             lastInspectionsDict[patient.id] = lastInspectionDate;
         }
         
+        patients = SortPatients(sorting, patients, lastInspectionsDict);
+        
+        var overAllPatientsCount = patients.Count;
+        var totalPages = (int)Math.Ceiling((double)overAllPatientsCount / size);
 
-        switch (sorting)
+        var pagedPatients = patients
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToList();
+
+        List<PatientDto> patientDtos = pagedPatients
+            .Select(p => _patientMapper.ToDto(p))
+            .ToList();
+        var pageInfo = new PageInfoDto(size, totalPages, page);
+        var patientPagedListDto = new PatientPagedListDto(patientDtos, pageInfo);
+
+        return patientPagedListDto;
+    }
+
+    private List<Patient> SortPatients(
+        SortingType type,
+        List<Patient> patients, Dictionary<Guid, DateTime?> lastInspections)
+    {
+        switch (type)
         {
             case SortingType.CreateAsc:
                 patients = patients.OrderBy(patient => patient.createTime).ToList();
@@ -382,54 +350,82 @@ public class PatientService : IPatientService
             case SortingType.InspectionAsc:
                 
                 patients = patients
-                    .OrderBy(patient => lastInspectionsDict[patient.id]) 
+                    .OrderBy(patient => lastInspections[patient.id]) 
                     .ToList();
                 break;
             
             case SortingType.InspectionDesc:
                 
                 patients = patients
-                    .OrderByDescending(patient => lastInspectionsDict[patient.id]) 
+                    .OrderByDescending(patient => lastInspections[patient.id]) 
                     .ToList();
                 break;
         }
 
-        var overAllPatientsCount = patients.Count;
-        var totalPages = (int)Math.Ceiling((double)overAllPatientsCount / size);
+        return patients;
+    }
 
-        var pagedPatients = patients
-            .Skip((page - 1) * size)
-            .Take(size)
+    private async Task<List<Patient>> FilterPatientsByConclusion(List<Patient> patients, Conclusion conclusion)
+    {
+        var allInspections = await _inspectionRepository.GetAllInspections();
+        var patientsWithCurrentConclusion = allInspections
+            .Where(i => i.conclusion == conclusion)
+            .Select(i => i.patient.id)
+            .Distinct()
             .ToList();
 
-        List<PatientDto> patientDtos = pagedPatients
-            .Select(p => _patientMapper.ToDto(p))
+        return patients
+            .Where(p => patientsWithCurrentConclusion.Contains(p.id))
             .ToList();
-        var pageInfo = new PageInfoDto(size, totalPages, page);
-        var patientPagedListDto = new PatientPagedListDto(patientDtos, pageInfo);
+    }
 
-        return patientPagedListDto;
+    private async Task<List<Patient>> FilterBySheduledVisits(List<Patient> patients)
+    {
+        var allInspections = await _inspectionRepository.GetAllInspections();
+        var patientsWithScheduledVisits = allInspections
+            .Where(i => i.nextVisitDate != null && i.nextVisitDate > DateTime.UtcNow)
+            .Select(i => i.patient.id)
+            .Distinct()
+            .ToList();
+
+       return patients
+            .Where(p => patientsWithScheduledVisits.Contains(p.id))
+            .ToList();
+    }
+
+    private async Task<List<Patient>> FilterPatientsByDoctor(List<Patient> patients, Guid doctorId)
+    {
+        var inspections = await _inspectionRepository.GetDoctorInspections(doctorId);
+        var patientIdsWithInspections = inspections.Select(inspection => inspection.patient.id).Distinct().ToList();
+
+        return patients
+            .Where(patient => patientIdsWithInspections.Contains(patient.id))
+            .ToList();
     }
     
-    private async Task<bool> IsHasIcdRoot(Icd icd, Guid rootId)
+    private async Task<List<Diagnosis>> FilterDiagnosisByIcdRoots(List<Diagnosis> diagnoses, List<Guid> icdRoots)
     {
-        var currentIcd = icd;
-
-        while (currentIcd != null)
+        var filteredDiagnoses = new List<Diagnosis>();
+        foreach (var diagnosis in diagnoses)
         {
-            if (icd.id == rootId)
+            bool hasRoot = false;
+
+            foreach (var root in icdRoots)
             {
-                return true;
+                var diagnosisIcdRoot = await _icdRepository.GetRootByIcdId(diagnosis.icd.id);
+                if (diagnosisIcdRoot.id == root)
+                {
+                    hasRoot = true;
+                    break; 
+                }
             }
 
-            if (icd.parent == null)
+            if (hasRoot)
             {
-                return false;
+                filteredDiagnoses.Add(diagnosis);
             }
-
-            currentIcd = await _icdRepository.GetById(currentIcd.parent.id);
         }
 
-        return false;
+        return filteredDiagnoses;
     }
 }

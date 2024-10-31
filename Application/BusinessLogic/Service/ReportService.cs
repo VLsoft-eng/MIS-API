@@ -8,25 +8,19 @@ namespace Application.BusinessLogic.Service;
 
 public class ReportService : IReportService
 {
-    private readonly IInspectionRepository _inspectionRepository;
     private readonly IDiagnosisRepository _diagnosisRepository;
     private readonly IIcdRepository _icdRepository;
-    private readonly IPatientRepository _patientRepository;
     private readonly IPatientMapper _patientMapper;
     private readonly IReportMapper _reportMapper;
     
     public ReportService(
-        IInspectionRepository inspectionRepository,
         IDiagnosisRepository diagnosisRepository,
         IIcdRepository icdRepository,
-        IPatientRepository patientRepository,
         IPatientMapper patientMapper,
         IReportMapper reportMapper)
     {
-        _inspectionRepository = inspectionRepository;
         _diagnosisRepository = diagnosisRepository;
         _icdRepository = icdRepository;
-        _patientRepository = patientRepository;
         _patientMapper = patientMapper;
         _reportMapper = reportMapper;
     }
@@ -36,28 +30,7 @@ public class ReportService : IReportService
         var diagnoses = await _diagnosisRepository.GetAllDiagnoses();
         if (icdRoots.Any())
         {
-            var filteredDiagnoses = new List<Diagnosis>();
-
-            foreach (var diagnosis in diagnoses)
-            {
-                bool hasRoot = false;
-
-                foreach (var root in icdRoots)
-                {
-                    if (await IsHasIcdRoot(diagnosis.icd, root))
-                    {
-                        hasRoot = true;
-                        break; 
-                    }
-                }
-
-                if (hasRoot)
-                {
-                    filteredDiagnoses.Add(diagnosis);
-                }
-            }
-
-            diagnoses = filteredDiagnoses;
+            diagnoses = await FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
         }
         else
         {
@@ -73,77 +46,72 @@ public class ReportService : IReportService
         var inspectionsInInterval = diagnoses
             .Select(d => d.inspection)
             .Where(i => i.date <= end && i.date >= start)
-            .Distinct()
             .ToList();
-        
-        var patients = await _patientRepository.GetAllPatients();
-        
-        var totalVisitsByRoot = new Dictionary<Guid, int>();
+
+        var patients = inspectionsInInterval.Select(i => i.patient).Distinct().ToList();
+
+        var totalVisitsByRoot = icdRoots.ToDictionary(root => root, root => 0);
         var reportData = new List<IcdRootsReportRecordDto>();
 
         foreach (var patient in patients)
         {
-            var visitsByRoot = new Dictionary<Guid, int>();
+            var visitsByRoot = icdRoots.ToDictionary(root => root, root => 0);
 
-            foreach (var root in icdRoots)
+            var patientInspections = inspectionsInInterval
+                .Where(i => i.patient.id == patient.id)
+                .ToList();
+
+            foreach (var inspection in patientInspections)
             {
-                int visitCount = 0;
+                var inspectionDiagnoses = diagnoses
+                    .Where(d => d.inspection.id == inspection.id)
+                    .ToList();
 
-                foreach (var inspection in inspectionsInInterval)
+                foreach (var diagnosis in inspectionDiagnoses)
                 {
-                    if (inspection.patient.id == patient.id)
+                    var diagnosisIcdRoot = await _icdRepository.GetRootByIcdId(diagnosis.icd.id);
+                    if (visitsByRoot.ContainsKey(diagnosisIcdRoot.id))
                     {
-                        foreach (var diagnosis in diagnoses)
-                        {
-                            if (diagnosis.inspection.id == inspection.id && await IsHasIcdRoot(diagnosis.icd, root))
-                            {
-                                visitCount++; 
-                                break;
-                            }
-                        }
+                        visitsByRoot[diagnosisIcdRoot.id]++;
+                        totalVisitsByRoot[diagnosisIcdRoot.id]++;
                     }
                 }
-
-                visitsByRoot[root] = visitCount; 
-                totalVisitsByRoot.TryGetValue(root, out var currentCount);
-                totalVisitsByRoot[root] = currentCount + visitCount;
             }
-            
+
             var reportRecord = _patientMapper.ToIcdRootsReportRecordDto(patient, visitsByRoot);
             reportData.Add(reportRecord);
         }
-        
+
         reportData = reportData.OrderBy(r => r.patientName).ToList();
-        
+
         var report = _reportMapper.ToDto(start, end, icdRoots, reportData, totalVisitsByRoot);
 
         return report;
-        
-        
-
     }
     
-    private async Task<bool> IsHasIcdRoot(Icd icd, Guid rootId)
+    private async Task<List<Diagnosis>> FilterDiagnosisByIcdRoots(List<Diagnosis> diagnoses, List<Guid> icdRoots)
     {
-        var currentIcd = icd;
-
-        while (currentIcd != null)
+        var filteredDiagnoses = new List<Diagnosis>();
+        foreach (var diagnosis in diagnoses)
         {
-            if (icd.id == rootId)
+            bool hasRoot = false;
+
+            foreach (var root in icdRoots)
             {
-                return true;
+                var diagnosisIcdRoot = await _icdRepository.GetRootByIcdId(diagnosis.icd.id);
+                if (diagnosisIcdRoot.id == root)
+                {
+                    hasRoot = true;
+                    break; 
+                }
             }
 
-            if (icd.parent == null)
+            if (hasRoot)
             {
-                return false;
+                filteredDiagnoses.Add(diagnosis);
             }
-
-            currentIcd = await _icdRepository.GetById(currentIcd.parent.id);
         }
 
-        return false;
+        return filteredDiagnoses;
     }
-    
-    
 }
