@@ -123,35 +123,17 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var emailSender = scope.ServiceProvider.GetRequiredService<EmailSender>();
+}
+
 app.UseHttpsRedirection();
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-using (var scope = app.Services.CreateScope())
-{
-    var emailSender = scope.ServiceProvider.GetRequiredService<EmailSender>();
-}
-
-var schedulerFactory = new StdSchedulerFactory();
-var scheduler = await schedulerFactory.GetScheduler();
-await scheduler.Start();
-
-IJobDetail job = JobBuilder.Create<MissedInspectionsChecker>()
-    .WithIdentity("missedInspectionsChecker", "check")
-    .Build();
-
-ITrigger trigger = TriggerBuilder.Create()
-    .WithIdentity("InspectionsCheckTrigger", "check")
-    .StartNow()
-    .WithSimpleSchedule(x => x
-        .WithIntervalInSeconds(1)
-        .RepeatForever())
-    .Build();
-
-
-await scheduler.ScheduleJob(job, trigger);
 
 app.MapControllers();
 app.Run();
