@@ -4,6 +4,7 @@ using Application.Abstractions.Service;
 using Application.Dto;
 using Domain;
 using FluentValidation;
+using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 namespace Application.BusinessLogic.Service;
 
@@ -80,6 +81,4 @@ public class DiagnosisService : IDiagnosisService
 
         return filteredDiagnoses;
     }
-
-
 }

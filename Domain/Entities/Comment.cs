@@ -14,7 +14,7 @@ public class Comment
     public DateTime createTime { get; set; }
     
     [Column("modified_date")]
-    public DateTime modifiedDate { get; set; }
+    public DateTime? modifiedDate { get; set; }
     
     [Column("content")]
     public string content { get; set; }

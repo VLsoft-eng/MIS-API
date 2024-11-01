@@ -35,6 +35,9 @@ public class Inspection
     [Column("create_time")]
     public DateTime createTime { get; set; }
     
+    [Column("is_notified")]
+    public bool isNotified { get; set; }
+    
     [ForeignKey("doctor_id")]
     public Doctor doctor { get; set; }
     

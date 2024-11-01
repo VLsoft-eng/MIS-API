@@ -13,7 +13,7 @@ public class PatientCreateValidator : AbstractValidator<PatientCreateRequest>
             .NotEmpty().WithMessage("Birthday date is required")
             .LessThan(DateTime.UtcNow).WithMessage("Birthday must be in the past");
         RuleFor(patient => patient.gender)
-            .NotEmpty().WithMessage("Gender is required")
+            .NotNull().WithMessage("Gender is required")
             .IsInEnum().WithMessage("Invalid gender value");
     }
 }

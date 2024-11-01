@@ -13,10 +13,11 @@ public class PatientRepository : IPatientRepository
         _context = context;
     }
 
-    public async Task Create(Patient patient)
+    public async Task<Guid> Create(Patient patient)
     {
         await _context.AddAsync(patient);
         await _context.SaveChangesAsync();
+        return patient.id;
     }
 
     public async Task<Patient?> GetById(Guid id)

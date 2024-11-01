@@ -43,7 +43,7 @@ public class CommentMapper : ICommentMapper
             author = doctor,
             consultation = consultation,
             content = request.content,
-            modifiedDate = DateTime.UtcNow,
+            modifiedDate = null,
             parent = parent
         };
     }

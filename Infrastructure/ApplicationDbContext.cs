@@ -57,5 +57,9 @@ public sealed class ApplicationDbContext : DbContext
         modelBuilder.Entity<Token>().ToTable("banned_tokens");
         modelBuilder.Entity<Icd>().ToTable("ICD_10");
         modelBuilder.Entity<Patient>().ToTable("patient");
+        modelBuilder.Entity<Diagnosis>().ToTable("diagnosis");
+        modelBuilder.Entity<Comment>().ToTable("comment");
+        modelBuilder.Entity<Consultation>().ToTable("consultation");
+        modelBuilder.Entity<Inspection>().ToTable("inspection");
     }
 }

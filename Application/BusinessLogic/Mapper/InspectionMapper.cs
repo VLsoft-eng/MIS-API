@@ -24,6 +24,7 @@ public class InspectionMapper : IInspectionMapper
             deathDate = inspectionCreateRequest.deathDate,
             doctor = doctor,
             patient = patient,
+            isNotified = false,
             previousInspection = previousInspection,
             createTime = DateTime.UtcNow
         };

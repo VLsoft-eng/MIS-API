@@ -6,4 +6,4 @@ public record InspectionCommentDto(
     Guid? parentId,
     string? content,
     DoctorDto author,
-    DateTime modifyTime);
+    DateTime? modifyTime);

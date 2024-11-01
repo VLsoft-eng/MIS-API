@@ -7,6 +7,9 @@ using Application.Exceptions;
 using Domain;
 using Domain.Enums;
 using FluentValidation;
+using System.ComponentModel.DataAnnotations;
+using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
+
 
 namespace Application.BusinessLogic.Service;
 
@@ -68,7 +71,7 @@ public class PatientService : IPatientService
         _diagnosisRepository = diagnosisRepository;
     }
 
-    public async Task Create(PatientCreateRequest request)
+    public async Task<Guid> Create(PatientCreateRequest request)
     {
         var validation = await _patientCreateValidator.ValidateAsync(request);
         if (!validation.IsValid)
@@ -77,7 +80,7 @@ public class PatientService : IPatientService
         }
 
         var patient = _patientMapper.ToEntity(request);
-        await _patientRepository.Create(patient);
+       return await _patientRepository.Create(patient);
     }
 
     public async Task<PatientDto> GetPatientById(Guid id)
@@ -105,12 +108,16 @@ public class PatientService : IPatientService
         {
             throw new ValidationException(inspectionValidation.Errors[0].ErrorMessage);
         }
-        
-        var previousInspectionId = request.previousInspectionId;
-        var previousInspection= await _inspectionRepository.GetById(previousInspectionId.Value);
-        if (previousInspection == null)
+
+        Inspection previousInspection = null;
+        if (request.previousInspectionId != null)
         {
-            throw new InspectionNotFoundException();
+            var previousInspectionId = request.previousInspectionId;
+             previousInspection = await _inspectionRepository.GetById(previousInspectionId.Value);
+            if (previousInspection == null)
+            {
+                throw new InspectionNotFoundException();
+            }
         }
 
         if (request.consultations != null)

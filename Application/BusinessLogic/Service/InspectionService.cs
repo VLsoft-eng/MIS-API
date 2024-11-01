@@ -1,11 +1,12 @@
 using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
 using Application.Abstractions.Service;
-using Application.BusinessLogic.Validation;
 using Application.Dto;
 using Application.Exceptions;
 using Domain;
 using FluentValidation;
+using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
+
 
 namespace Application.BusinessLogic.Service;
 

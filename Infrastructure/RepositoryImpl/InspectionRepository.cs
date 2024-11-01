@@ -127,11 +127,24 @@ public class InspectionRepository : IInspectionRepository
     {
         return await _context.Inspections
             .Where(i =>
-                i.date <= DateTime.UtcNow &&
+                i.date <= DateTime.UtcNow.AddDays(1) &&
                 i.conclusion != Conclusion.Death &&
-                i.nextVisitDate == null)
+                i.nextVisitDate == null &&
+                i.isNotified != true)
             .Include(i => i.doctor)
             .Include(i => i.patient)
             .ToListAsync();
+    }
+    
+    public async Task UpdateIsNotified(Guid inspectionId, bool isNotified)
+    {
+        var inspection = await _context.Inspections.FindAsync(inspectionId);
+        if (inspection == null)
+        {
+            throw new KeyNotFoundException("Inspection not found");
+        }
+
+        inspection.isNotified = isNotified;
+        await _context.SaveChangesAsync();
     }
 }

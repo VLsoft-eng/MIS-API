@@ -27,6 +27,11 @@ public class CommentService : ICommentService
             throw new CommentNotFoundException();
         }
 
+        if (comment.content == request.content)
+        {
+            throw new ValidationException("Content not changed");
+        }
+
         var validation = await _commentEditValidator.ValidateAsync(request);
         if (!validation.IsValid)
         {
