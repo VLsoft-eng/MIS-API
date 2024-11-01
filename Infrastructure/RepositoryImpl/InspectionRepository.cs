@@ -127,7 +127,7 @@ public class InspectionRepository : IInspectionRepository
     {
         return await _context.Inspections
             .Where(i =>
-                i.date <= DateTime.UtcNow.AddDays(1) &&
+                i.date.AddHours(5) <= DateTime.UtcNow &&
                 i.conclusion != Conclusion.Death &&
                 i.nextVisitDate == null &&
                 i.isNotified != true)

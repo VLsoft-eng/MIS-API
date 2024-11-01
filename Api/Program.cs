@@ -12,8 +12,12 @@ using Domain;
 using FluentValidation;
 using Infrastructure;
 using Infrastructure.Auth;
+using Infrastructure.Notifications;
+using Infrastructure.Notifications.QuartzJobs;
 using Infrastructure.RepositoryImpl;
 using Microsoft.EntityFrameworkCore;
+using Quartz;
+using Quartz.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,15 +66,39 @@ builder.Services.AddScoped<IReportMapper, ReportMapper>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IDiagnosisService, DiagnosisService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
-
-
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
-
+builder.Services.AddScoped<EmailSender>();
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
 builder.Services.AddApiAuthentication(builder.Configuration);
+
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionJobFactory();
+
+    q.AddJob<MissedInspectionsChecker>(options =>
+    {
+        options.WithIdentity("trigger1", "group1")
+            .Build();
+    });
+
+    q.AddTrigger(options =>
+    {
+        options.ForJob("trigger1", "group1")
+            .StartNow()
+            .WithSimpleSchedule(x =>
+                x.WithIntervalInSeconds(2)
+                    .RepeatForever());
+    });
+});
+
+builder.Services.AddQuartzHostedService(options =>
+{
+    options.WaitForJobsToComplete = true;
+});
+builder.Services.AddTransient<MissedInspectionsChecker>();
 
 var app = builder.Build();
 
@@ -100,6 +128,30 @@ app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
+using (var scope = app.Services.CreateScope())
+{
+    var emailSender = scope.ServiceProvider.GetRequiredService<EmailSender>();
+}
+
+var schedulerFactory = new StdSchedulerFactory();
+var scheduler = await schedulerFactory.GetScheduler();
+await scheduler.Start();
+
+IJobDetail job = JobBuilder.Create<MissedInspectionsChecker>()
+    .WithIdentity("missedInspectionsChecker", "check")
+    .Build();
+
+ITrigger trigger = TriggerBuilder.Create()
+    .WithIdentity("InspectionsCheckTrigger", "check")
+    .StartNow()
+    .WithSimpleSchedule(x => x
+        .WithIntervalInSeconds(1)
+        .RepeatForever())
+    .Build();
+
+
+await scheduler.ScheduleJob(job, trigger);
 
 app.MapControllers();
 app.Run();
