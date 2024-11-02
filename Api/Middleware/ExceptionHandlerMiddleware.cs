@@ -91,5 +91,17 @@ public class ExceptionHandlerMiddleware
             httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             await httpContext.Response.WriteAsJsonAsync(error);
         }
-    }
+        catch (IcdNotRootException e)
+        {
+            var error = new ErrorResponse(StatusCodes.Status400BadRequest, e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await httpContext.Response.WriteAsJsonAsync(error);
+        }
+        catch (InspectionNotRootException e)
+        {
+            var error = new ErrorResponse(StatusCodes.Status400BadRequest, e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await httpContext.Response.WriteAsJsonAsync(error);
+        }
+}
 }
