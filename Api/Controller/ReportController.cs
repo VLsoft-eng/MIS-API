@@ -18,7 +18,7 @@ public class ReportController : ControllerBase
 
     [Authorize]
     [HttpGet("icdrootsreport")]
-    public async Task<IcdRootsReportDto> GetIcdRootsReport(
+    public async Task<ActionResult<IcdRootsReportDto>> GetIcdRootsReport(
         [FromQuery] DateTime start,
         [FromQuery] DateTime end,
         [FromQuery] List<Guid>? icdRoots)

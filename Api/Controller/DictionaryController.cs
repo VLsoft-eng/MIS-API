@@ -19,23 +19,23 @@ public class DictionaryController : ControllerBase
 
     [HttpGet("speciality")]
     public async Task<ActionResult<SpecialitiesPagedListDto>> GetSpecialitiesByNameAndParams(
-        [FromQuery] string name, 
+        [FromQuery] string? name,
         [FromQuery] int page = 1,
         [FromQuery] int size = 5)
     {
         var pagedList = await _specialityService.GetByNameAndParams(name, page, size);
-        return Ok(pagedList);
+        return pagedList;
     }
 
     [HttpGet("icd10/root")]
-    public async Task<List<Icd10RecordDto>> GetRootElements()
+    public async Task<ActionResult<List<Icd10RecordDto>>> GetRootElements()
     {
         return await _icdService.GetRootElements();
     }
 
     [HttpGet("icd10")]
     public async Task<ActionResult<Icd10SearchDto>> GetIcdByNameAndParams(
-        [FromQuery] string name, 
+        [FromQuery] string? name, 
         [FromQuery] int page = 1,
         [FromQuery] int size = 5)
     {

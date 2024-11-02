@@ -2,6 +2,7 @@ using Application.Abstractions.Repository;
 using Domain;
 using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace Infrastructure.RepositoryImpl;
 
@@ -54,12 +55,30 @@ public class InspectionRepository : IInspectionRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<Inspection>> GetRootInspectionsByRequest(Guid patientId, string request)
+    public async Task<List<Inspection>> GetRootInspectionsByPatient(Guid patientId)
     {
         var inspections = await _context.Diagnoses
+            .Include(d => d.icd)
+            .Include(d => d.inspection.previousInspection)
+            .Include(d => d.inspection.patient)
             .Where(d => d.inspection.patient.id == patientId && 
                         d.diagnosisType == DiagnosisType.Main && 
-                        (d.icd.name.Contains(request) || d.icd.сode.Contains(request)) &&
+                        d.inspection.previousInspection == null)
+            .Select(d => d.inspection)
+            .ToListAsync();
+
+        return inspections;
+    }
+    
+    public async Task<List<Inspection>> GetRootInspectionsByPatient(Guid patientId, string request)
+    {
+        var inspections = await _context.Diagnoses
+            .Include(d => d.icd)
+            .Include(d => d.inspection.previousInspection)
+            .Include(d => d.inspection.patient)
+            .Where(d => d.inspection.patient.id == patientId && 
+                        d.diagnosisType == DiagnosisType.Main && 
+                        d.icd.name.ToLower().Contains(request) || d.icd.сode.ToLower().Contains(request) &&
                         d.inspection.previousInspection == null)
             .Select(d => d.inspection)
             .ToListAsync();

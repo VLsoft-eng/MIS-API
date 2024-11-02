@@ -34,7 +34,7 @@ public class ConsultationController : ControllerBase
 
     [Authorize]
     [HttpPost("{id}/comment")]
-    public async Task<Guid> CreateComment(Guid id, [FromBody] ConsultationCommentCreateRequest request)
+    public async Task<ActionResult<Guid>> CreateComment(Guid id, [FromBody] ConsultationCommentCreateRequest request)
     {
         Guid doctorId = Guid.Parse(HttpContext.GetUserId());
         return await _commentService.CreateComment(id, doctorId, request);
@@ -42,14 +42,14 @@ public class ConsultationController : ControllerBase
 
     [Authorize]
     [HttpGet("{id}")]
-    public async Task<ConsultationDto> GetConsultationById(Guid id)
+    public async Task<ActionResult<ConsultationDto>> GetConsultationById(Guid id)
     {
         return await _consultationService.GetConsultation(id);
     }
 
     [Authorize]
     [HttpGet]
-    public async Task<InspectionPagedListDto> GetDoctorsSpecialityInspections(
+    public async Task<ActionResult<InspectionPagedListDto>> GetDoctorsSpecialityInspections(
         [FromQuery] bool grouped,
         [FromQuery] List<Guid> icdRoots,
         [FromQuery] int page = 1,

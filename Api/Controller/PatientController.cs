@@ -44,14 +44,14 @@ public class PatientController : ControllerBase
 
     [Authorize]
     [HttpGet("{id}/inspections/search")]
-    public async Task<List<InspectionShortDto>> GetPatientInspectionWithoutChilds(Guid id, [FromQuery] string request)
+    public async Task<ActionResult<List<InspectionShortDto>>> GetPatientInspectionWithoutChilds(Guid id, [FromQuery] string request)
     {
         return await _patientService.SearchPatientInspectionsByParams(id, request);
     }
 
     [Authorize]
     [HttpGet("{id}/inspections")]
-    public async Task<InspectionPagedListDto> GetPatientInspectionsByParams(
+    public async Task<ActionResult<InspectionPagedListDto>> GetPatientInspectionsByParams(
         Guid id,
         [FromQuery] bool grouped, 
         [FromQuery] List<Guid> icdRoots,
@@ -64,11 +64,11 @@ public class PatientController : ControllerBase
     [Authorize]
     [HttpGet]
     public async Task<ActionResult<PatientPagedListDto>> GetPatientList(
-        [FromQuery] string name,
-        [FromQuery] Conclusion conclusion,
-        [FromQuery] SortingType sorting,
-        [FromQuery] bool scheduledVisits,
-        [FromQuery] bool onlyMine,
+        [FromQuery] string? name,
+        [FromQuery] Conclusion? conclusion,
+        [FromQuery] SortingType? sorting,
+        [FromQuery] bool scheduledVisits = false,
+        [FromQuery] bool onlyMine = false,
         [FromQuery] int page = 1,
         [FromQuery] int size = 5)
     {

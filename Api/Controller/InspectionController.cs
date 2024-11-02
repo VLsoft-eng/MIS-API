@@ -19,7 +19,7 @@ public class InspectionController : ControllerBase
 
     [Authorize]
     [HttpGet("{id}")]
-    public async Task<InspectionDto> GetById(Guid id)
+    public async Task<ActionResult<InspectionDto>> GetById(Guid id)
     {
         return await _inspectionService.GetInspectionById(id);
     }
@@ -34,7 +34,7 @@ public class InspectionController : ControllerBase
 
     [Authorize]
     [HttpGet("{id}/chain")]
-    public async Task<List<InspectionFullDto>> GetInspectionChain(Guid id)
+    public async Task<ActionResult<List<InspectionFullDto>>> GetInspectionChain(Guid id)
     {
         return await _inspectionService.GetChainByRoot(id);
     }

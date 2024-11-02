@@ -19,9 +19,9 @@ public interface IPatientService
         int size);
 
     Task<PatientPagedListDto> GetPatientsByParams(
-        string request,
-        Conclusion conclusion,
-        SortingType sorting,
+        string? request,
+        Conclusion? conclusion,
+        SortingType? sorting,
         bool scheduledVisits,
         bool onlyMine,
         int page,

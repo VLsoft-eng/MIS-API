@@ -19,20 +19,12 @@ public class IcdRepository : IIcdRepository
             .Where(icd => icd.parent == null)
             .ToListAsync();
     }
-    
-    public async Task<List<Icd>> GetByNameAndParams(string name, int page, int size)
-    {
-        return await _context.Icds
-            .Where(s => s.name.Contains(name))
-            .Skip((page - 1) * size)
-            .Take(size)
-            .ToListAsync();
-    }
 
-    public async Task<int> GetCountByName(string name)
+    public async Task<List<Icd>> GetAllIcds()
     {
         return await _context.Icds
-            .CountAsync(s => s.name.Contains(name));
+            .Include(i => i.parent)
+            .ToListAsync();
     }
 
     public async Task<Icd?> GetById(Guid id)

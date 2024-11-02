@@ -136,6 +136,11 @@ public class InspectionService : IInspectionService
             throw new InspectionNotFoundException();
         }
 
+        if (rootInspection.previousInspection != null)
+        {
+            throw new InspectionNotRootException();
+        }
+
         var chain = await _inspectionRepository.GetChainByRoot(rootId);
 
         var inspectionFullDtos = new List<InspectionFullDto>();
@@ -214,8 +219,14 @@ public class InspectionService : IInspectionService
             inspectionFullDtos.Add(inspectionFullDto);
         }
 
-        var overAllInspectionsCount = pagedInspections.Count;
+        var overAllInspectionsCount = inspections.Count;
         var totalPages = (int)Math.Ceiling((double)overAllInspectionsCount / size);
+
+        if (page > totalPages)
+        {
+            throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
+        }
+        
         var pageInfo = new PageInfoDto(size, totalPages, page);
 
         return new InspectionPagedListDto(inspectionFullDtos, pageInfo);

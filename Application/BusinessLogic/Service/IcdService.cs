@@ -25,20 +25,37 @@ public class IcdService : IIcdService
         return icdDtos;
     }
 
-    public async Task<Icd10SearchDto> GetByNameAndParams(string name, int page, int size)
+    public async Task<Icd10SearchDto> GetByNameAndParams(string? name, int page, int size)
     {
         if (size <= 0 || page <= 0)
         {
             throw new InvalidPaginationParamsException();
         }
-        
-        var icds = await _icdRepository.GetByNameAndParams(name, page, size);
-        var overAllIcdsWithName = await _icdRepository.GetCountByName(name);
-        var totalPages = (int)Math.Ceiling((double)overAllIcdsWithName / size);
 
-        var specialitiesDtos = _icdMapper.ToDto(icds);
+        var icds = await _icdRepository.GetAllIcds();
+        if (name != null)
+        {
+            icds = icds.Where(i => i.сode.ToLower().Contains(name.ToLower()) ||
+                                   i.сode.ToLower().Contains(name.ToLower()))
+                .ToList();
+        }
+        
+        var overAllIcds = icds.Count;
+        var pagedIcds = icds
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToList();
+        
+        var totalPages = (int)Math.Ceiling((double)overAllIcds / size);
+        
+        if (page > totalPages)
+        {
+            throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
+        }
+        
+        var icdsDtos = _icdMapper.ToDto(pagedIcds);
         var pageInfoDto = new PageInfoDto(size, totalPages, page);
 
-        return new Icd10SearchDto(specialitiesDtos, pageInfoDto);
+        return new Icd10SearchDto(icdsDtos, pageInfoDto);
     }
 }

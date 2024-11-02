@@ -178,7 +178,7 @@ public class PatientService : IPatientService
         return inspection.id;
     }
     
-    public async Task<List<InspectionShortDto>> SearchPatientInspectionsByParams(Guid patientId, string request)
+    public async Task<List<InspectionShortDto>> SearchPatientInspectionsByParams(Guid patientId, string? request)
     {
         var patient = await _patientRepository.GetById(patientId);
         if (patient == null)
@@ -186,7 +186,16 @@ public class PatientService : IPatientService
             throw new PatientNotFoundException();
         }
 
-        List <Inspection> inspections = await _inspectionRepository.GetRootInspectionsByRequest(patientId, request);
+        List<Inspection> inspections = null;
+        if (request != null)
+        {
+            inspections = await _inspectionRepository.GetRootInspectionsByPatient(patientId, request.ToLower());
+        }
+        else
+        {
+            inspections = await _inspectionRepository.GetRootInspectionsByPatient(patientId);
+        }
+        
         
         List<InspectionShortDto> inspectionShortDtos = new List<InspectionShortDto>();
         foreach (var inspection in inspections)
@@ -220,7 +229,16 @@ public class PatientService : IPatientService
         var diagnoses = await _diagnosisRepository.GetPatientsDiagnoses(patientId);
         if (icdRoots.Any())
         {
-            diagnoses = await FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
+            foreach (var root in icdRoots)
+            {
+                var icd = await _icdRepository.GetById(root);
+                if (icd.parent != null)
+                {
+                    throw new IcdNotRootException();
+                }
+            }
+            
+            diagnoses = await _diagnosisService.FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
         }
         
         var inspections = diagnoses.Select(d => d.inspection).Distinct().ToList();
@@ -251,15 +269,21 @@ public class PatientService : IPatientService
 
         var overAllInspectionsCount = pagedInspections.Count;
         var totalPages = (int)Math.Ceiling((double)overAllInspectionsCount / size);
+        
+        if (page > totalPages)
+        {
+            throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
+        }
+        
         var pageInfo = new PageInfoDto(size, totalPages, page);
 
         return new InspectionPagedListDto(inspectionFullDtos, pageInfo);
     }
 
     public async Task<PatientPagedListDto> GetPatientsByParams(
-        string request,
-        Conclusion conclusion,
-        SortingType sorting,
+        string? request,
+        Conclusion? conclusion,
+        SortingType? sorting,
         bool scheduledVisits,
         bool onlyMine,
         int page, 
@@ -272,7 +296,11 @@ public class PatientService : IPatientService
         }
         
         var patients = await _patientRepository.GetAllPatients();
-        patients = patients.Where(patient => patient.name.ToLower().Contains(request.ToLower())).ToList();
+
+        if (request != null)
+        {
+            patients = patients.Where(patient => patient.name.ToLower().Contains(request.ToLower())).ToList();   
+        }
 
         if (onlyMine)
         {
@@ -283,22 +311,32 @@ public class PatientService : IPatientService
         {
             patients = await FilterBySheduledVisits(patients);
         }
-        
-        patients = await FilterPatientsByConclusion(patients, conclusion);
-        
-        var lastInspectionsDict = new Dictionary<Guid, DateTime?>();
-        foreach (var patient in patients)
+
+        if (conclusion != null)
         {
-            var inspections = await _inspectionRepository.GetPatientInspections(patient.id); 
-            var lastInspectionDate = inspections.Max(i => i.date); 
-            lastInspectionsDict[patient.id] = lastInspectionDate;
+            patients = await FilterPatientsByConclusion(patients, conclusion.Value);
         }
-        
-        patients = SortPatients(sorting, patients, lastInspectionsDict);
+
+        if (sorting != null)
+        {
+            var lastInspectionsDict = new Dictionary<Guid, DateTime?>();
+            foreach (var patient in patients)
+            {
+                var inspections = await _inspectionRepository.GetPatientInspections(patient.id); 
+                var lastInspectionDate = inspections.Max(i => i.date); 
+                lastInspectionsDict[patient.id] = lastInspectionDate;
+            }
+            patients = SortPatients(sorting.Value, patients, lastInspectionsDict);
+        }
         
         var overAllPatientsCount = patients.Count;
         var totalPages = (int)Math.Ceiling((double)overAllPatientsCount / size);
-
+        
+        if (page > totalPages)
+        {
+            throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
+        }
+        
         var pagedPatients = patients
             .Skip((page - 1) * size)
             .Take(size)
@@ -389,31 +427,5 @@ public class PatientService : IPatientService
         return patients
             .Where(patient => patientIdsWithInspections.Contains(patient.id))
             .ToList();
-    }
-    
-    private async Task<List<Diagnosis>> FilterDiagnosisByIcdRoots(List<Diagnosis> diagnoses, List<Guid> icdRoots)
-    {
-        var filteredDiagnoses = new List<Diagnosis>();
-        foreach (var diagnosis in diagnoses)
-        {
-            bool hasRoot = false;
-
-            foreach (var root in icdRoots)
-            {
-                var diagnosisIcdRoot = await _icdRepository.GetRootByIcdId(diagnosis.icd.id);
-                if (diagnosisIcdRoot.id == root)
-                {
-                    hasRoot = true;
-                    break; 
-                }
-            }
-
-            if (hasRoot)
-            {
-                filteredDiagnoses.Add(diagnosis);
-            }
-        }
-
-        return filteredDiagnoses;
     }
 }

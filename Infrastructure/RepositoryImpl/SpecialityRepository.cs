@@ -24,18 +24,8 @@ public class SpecialityRepository : ISpecialityRepository
         return await _context.Specialities.FindAsync(id);
     }
 
-    public async Task<List<Speciality>> GetByNameAndParams(string name, int page, int size)
+    public async Task<List<Speciality>> GetAllSpecialities()
     {
-        return await _context.Specialities
-            .Where(s => s.name.Contains(name))
-            .Skip((page - 1) * size)
-            .Take(size)
-            .ToListAsync();
-    }
-
-    public async Task<int> GetCountByName(string name)
-    {
-        return await _context.Specialities
-            .CountAsync(s => s.name.Contains(name));
+        return await _context.Specialities.ToListAsync();
     }
 }
