@@ -44,7 +44,7 @@ public class PatientController : ControllerBase
 
     [Authorize]
     [HttpGet("{id}/inspections/search")]
-    public async Task<ActionResult<List<InspectionShortDto>>> GetPatientInspectionWithoutChilds(Guid id, [FromQuery] string request)
+    public async Task<ActionResult<List<InspectionShortDto>>> GetPatientInspectionWithoutChilds(Guid id, [FromQuery] string? request)
     {
         return await _patientService.SearchPatientInspectionsByParams(id, request);
     }

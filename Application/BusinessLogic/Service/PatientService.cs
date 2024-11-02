@@ -186,7 +186,7 @@ public class PatientService : IPatientService
             throw new PatientNotFoundException();
         }
 
-        List<Inspection> inspections = null;
+        List<Inspection> inspections;
         if (request != null)
         {
             inspections = await _inspectionRepository.GetRootInspectionsByPatient(patientId, request.ToLower());
@@ -195,7 +195,6 @@ public class PatientService : IPatientService
         {
             inspections = await _inspectionRepository.GetRootInspectionsByPatient(patientId);
         }
-        
         
         List<InspectionShortDto> inspectionShortDtos = new List<InspectionShortDto>();
         foreach (var inspection in inspections)
