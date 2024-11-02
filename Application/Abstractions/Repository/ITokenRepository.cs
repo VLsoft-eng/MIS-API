@@ -6,4 +6,5 @@ public interface ITokenRepository
 { 
     Task<Token?> GetById(Guid id);
     Task Add(Token token);
+    Task DeleteExpired();
 }

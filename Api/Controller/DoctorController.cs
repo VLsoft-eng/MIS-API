@@ -31,8 +31,9 @@ public class DoctorController : ControllerBase
     {
         Guid tokenId = Guid.Parse(HttpContext.GetTokenId());
         string tokenValue = HttpContext.GetJwtToken();
+        DateTime expiresAt = HttpContext.GetTokenExpiration().Value;
         
-        await _doctorService.Logout(tokenId, tokenValue);
+        await _doctorService.Logout(tokenId, tokenValue, expiresAt);
     }
     
     [HttpPost("login")]

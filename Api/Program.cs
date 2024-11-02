@@ -8,7 +8,6 @@ using Application.BusinessLogic.Mapper;
 using Application.BusinessLogic.Service;
 using Application.BusinessLogic.Validation;
 using Application.Dto;
-using Domain;
 using FluentValidation;
 using Infrastructure;
 using Infrastructure.Auth;
@@ -17,7 +16,6 @@ using Infrastructure.Notifications.QuartzJobs;
 using Infrastructure.RepositoryImpl;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
-using Quartz.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,13 +90,30 @@ builder.Services.AddQuartz(q =>
                 x.WithIntervalInSeconds(2)
                     .RepeatForever());
     });
+
+    q.AddJob<BannedTokenCleaner>(options =>
+    {
+        options.WithIdentity("trigger2", "group2")
+            .Build();
+    });
+
+    q.AddTrigger(options =>
+    {
+        options.ForJob("trigger2", "group2")
+            .StartNow()
+            .WithSimpleSchedule(x =>
+                x.WithIntervalInSeconds(10)
+                    .RepeatForever());
+    });
 });
 
 builder.Services.AddQuartzHostedService(options =>
 {
     options.WaitForJobsToComplete = true;
 });
+
 builder.Services.AddTransient<MissedInspectionsChecker>();
+builder.Services.AddTransient<BannedTokenCleaner>();
 
 var app = builder.Build();
 

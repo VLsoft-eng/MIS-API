@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+
 namespace Api.Extensions;
 
 public static class HttpContextExtension
@@ -42,5 +44,25 @@ public static class HttpContextExtension
         }
 
         return null; 
+    }
+    
+    public static DateTime? GetTokenExpiration(this HttpContext httpContext)
+    {
+        var token = httpContext.GetJwtToken();
+
+        if (string.IsNullOrEmpty(token))
+        {
+            return null;
+        }
+
+        var handler = new JwtSecurityTokenHandler();
+
+        if (handler.CanReadToken(token))
+        {
+            var jwtToken = handler.ReadJwtToken(token);
+            return jwtToken.ValidTo; 
+        }
+
+        return null;
     }
 }

@@ -8,5 +8,5 @@ public interface IDoctorService
     Task<TokenDto> Login(DoctorLoginRequest request);
     Task<DoctorDto> GetDoctorInfo(Guid id);
     Task EditUserProfile(Guid id, DoctorEditRequest request);
-    Task Logout(Guid id, string tokenValue);
+    Task Logout(Guid tokenId, string tokenValue, DateTime expiredTime);
 }

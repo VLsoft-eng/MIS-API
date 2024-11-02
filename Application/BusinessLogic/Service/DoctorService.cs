@@ -133,7 +133,7 @@ public class DoctorService : IDoctorService
         await _doctorRepository.Update(doctor);
     }
 
-    public async Task Logout(Guid tokenId, string tokenValue)
+    public async Task Logout(Guid tokenId, string tokenValue, DateTime expiresTime)
     {
         var token = await _tokenRepository.GetById(tokenId);
 
@@ -142,7 +142,7 @@ public class DoctorService : IDoctorService
             throw new AlreadyLogoutException();
         }
 
-        Token bannedToken = _tokenMapper.ToEntity (tokenId, tokenValue);
+        Token bannedToken = _tokenMapper.ToEntity(tokenId, tokenValue, expiresTime);
         await _tokenRepository.Add(bannedToken);
     }
 }

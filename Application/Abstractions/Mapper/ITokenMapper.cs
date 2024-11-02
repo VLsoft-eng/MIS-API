@@ -4,5 +4,5 @@ namespace Application.Abstractions.Mapper;
 
 public interface ITokenMapper
 {
-    Token ToEntity(Guid id, string token);
+    Token ToEntity(Guid id, string token, DateTime expiresAt);
 }

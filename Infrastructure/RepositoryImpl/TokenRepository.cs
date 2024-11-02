@@ -1,5 +1,6 @@
 using Application.Abstractions.Repository;
 using Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.RepositoryImpl;
 
@@ -21,5 +22,16 @@ public class TokenRepository : ITokenRepository
     {
         await _context.Tokens.AddAsync(token);
         await _context.SaveChangesAsync();
-    } 
+    }
+
+    public async Task DeleteExpired()
+    {
+        var expiredTokens = await _context.Tokens
+            .Where(t => t.expiresAt <= DateTime.UtcNow)
+            .ToListAsync(); 
+
+        _context.Tokens.RemoveRange(expiredTokens); 
+
+        await _context.SaveChangesAsync();       
+    }
 }
