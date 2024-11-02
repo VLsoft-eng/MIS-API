@@ -23,55 +23,65 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+//Repository
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<ISpecialityRepository, SpecialityRepository>();
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<IIcdRepository, IcdRepository>();
+builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<IInspectionRepository, InspectionRepository>();
+builder.Services.AddScoped<IConsultationRepository, ConsultationRepository>();
+builder.Services.AddScoped<IDiagnosisRepository, DiagnosisRepository>();
+
+//Services
 builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<ISpecialityService, SpecialityService>();
+builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddScoped<IIcdService, IcdService>();
+builder.Services.AddScoped<IConsultationService, ConsultationService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IDiagnosisService, DiagnosisService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IInspectionService, InspectionService>();
+
+//Security
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
+builder.Services.AddApiAuthentication(builder.Configuration);
+
+//Validation
 builder.Services.AddScoped<IValidator<DoctorLoginRequest>, DoctorLoginValidator>();
 builder.Services.AddScoped<IValidator<DoctorRegistrationRequest>, DoctorRegistrationValidator>();
 builder.Services.AddScoped<IValidator<DoctorEditRequest>, DoctorEditValidator>();
 builder.Services.AddScoped<IValidator<PatientCreateRequest>, PatientCreateValidator>();
-builder.Services.AddScoped<IDoctorMapper, DoctorMapper>();
-builder.Services.AddScoped<ITokenRepository, TokenRepository>();
-builder.Services.AddScoped<ITokenMapper, TokenMapper>();
-builder.Services.AddScoped<ISpecialityMapper, SpecialityMapper>();
-builder.Services.AddScoped<ISpecialityService, SpecialityService>();
-builder.Services.AddScoped<IIcdRepository, IcdRepository>();
-builder.Services.AddScoped<IIcdMapper, IcdMapper>();
-builder.Services.AddScoped<IIcdService, IcdService>();
-builder.Services.AddScoped<IPatientRepository, PatientRepository>();
-builder.Services.AddScoped<IPatientMapper, PatientMapper>();
-builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IValidator<InspectionCreateRequest>, InspectionCreateValidator>();
 builder.Services.AddScoped<IValidator<ConsultationCreateRequest>, ConsultationCreateValidator>();
 builder.Services.AddScoped<IValidator<InspectionCommentCreateRequest>, InspectionCommentCreateValidator>();
 builder.Services.AddScoped<IValidator<DiagnosisCreateRequest>, DiagnosisCreateValidator>();
 builder.Services.AddScoped<IValidator<CommentEditRequest>, CommentEditValidator>();
-builder.Services.AddScoped<ICommentRepository, CommentRepository>();
-builder.Services.AddScoped<IInspectionRepository, InspectionRepository>();
-builder.Services.AddScoped<IConsultationRepository, ConsultationRepository>();
-builder.Services.AddScoped<IDiagnosisRepository, DiagnosisRepository>();
+builder.Services.AddScoped<IValidator<ConsultationCommentCreateRequest>, ConsultationCommentCreateValidator>();
+builder.Services.AddScoped<IValidator<InspectionEditRequest>, InspectionEditValidator>();
+
+//Mapper
+builder.Services.AddScoped<IDoctorMapper, DoctorMapper>();
+builder.Services.AddScoped<ITokenMapper, TokenMapper>();
+builder.Services.AddScoped<ISpecialityMapper, SpecialityMapper>();
+builder.Services.AddScoped<IIcdMapper, IcdMapper>();
+builder.Services.AddScoped<IPatientMapper, PatientMapper>();
 builder.Services.AddScoped<IInspectionMapper, InspectionMapper>();
 builder.Services.AddScoped<IDiagnosisMapper, DiagnosisMapper>();
 builder.Services.AddScoped<ICommentMapper, CommentMapper>();
 builder.Services.AddScoped<IConsultationMapper, ConsultationMapper>();
-builder.Services.AddScoped<IConsultationService, ConsultationService>();
-builder.Services.AddScoped<IValidator<ConsultationCommentCreateRequest>, ConsultationCommentCreateValidator>();
-builder.Services.AddScoped<IInspectionService, InspectionService>();
-builder.Services.AddScoped<IValidator<InspectionEditRequest>, InspectionEditValidator>();
 builder.Services.AddScoped<IReportMapper, ReportMapper>();
-builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<IDiagnosisService, DiagnosisService>();
-builder.Services.AddScoped<ICommentService, CommentService>();
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
+
+//Utilities
 builder.Services.AddScoped<EmailSender>();
-builder.Services.AddControllers();
-builder.Services.AddSwaggerGen();
+builder.Services.AddTransient<MissedInspectionsChecker>();
+builder.Services.AddTransient<BannedTokenCleaner>();
 
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
-builder.Services.AddApiAuthentication(builder.Configuration);
-
+//Quartz
 builder.Services.AddQuartz(q =>
 {
     q.UseMicrosoftDependencyInjectionJobFactory();
@@ -87,7 +97,7 @@ builder.Services.AddQuartz(q =>
         options.ForJob("trigger1", "group1")
             .StartNow()
             .WithSimpleSchedule(x =>
-                x.WithIntervalInSeconds(2)
+                x.WithIntervalInHours(5)
                     .RepeatForever());
     });
 
@@ -102,18 +112,17 @@ builder.Services.AddQuartz(q =>
         options.ForJob("trigger2", "group2")
             .StartNow()
             .WithSimpleSchedule(x =>
-                x.WithIntervalInSeconds(10)
+                x.WithIntervalInHours(12)
                     .RepeatForever());
     });
 });
-
 builder.Services.AddQuartzHostedService(options =>
 {
     options.WaitForJobsToComplete = true;
 });
 
-builder.Services.AddTransient<MissedInspectionsChecker>();
-builder.Services.AddTransient<BannedTokenCleaner>();
+builder.Services.AddControllers();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -148,7 +157,6 @@ app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
 
 app.MapControllers();
 app.Run();
