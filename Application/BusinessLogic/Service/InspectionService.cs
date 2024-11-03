@@ -141,7 +141,7 @@ public class InspectionService(
             throw new InvalidPaginationParamsException();
         }
         
-        var diagnoses = await diagnosisRepository.GetAllDiagnoses();
+        var diagnoses = await diagnosisRepository.GetAllMainDiagnoses();
         if (icdRoots.Any())
         {
             foreach (var root in icdRoots)

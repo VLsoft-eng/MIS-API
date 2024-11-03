@@ -17,7 +17,7 @@ public class ReportService(
 {
     public async Task<IcdRootsReportDto> GetReport(DateTime start, DateTime end, List<Guid> icdRoots)
     {
-        var diagnoses = await diagnosisRepository.GetAllDiagnoses();
+        var diagnoses = await diagnosisRepository.GetAllMainDiagnoses();
         if (icdRoots.Any())
         {
             foreach (var root in icdRoots)

@@ -53,20 +53,6 @@ public class DiagnosisRepository(ApplicationDbContext context) : IDiagnosisRepos
             .ToListAsync();
     }
 
-    public async Task DeleteAllInspectionDiagnoses(Guid inspectionId)
-    {
-        var diagnosesToDelete = await context.Diagnoses
-            .Include(d => d.inspection)
-            .Where(d => d.inspection.id == inspectionId)
-            .ToListAsync();
-
-        if (diagnosesToDelete.Any())
-        {
-            context.Diagnoses.RemoveRange(diagnosesToDelete);
-            await context.SaveChangesAsync();
-        }
-    }
-
     public async Task CreateRange(List<Diagnosis> diagnoses)
     {
         await context.Diagnoses.AddRangeAsync(diagnoses);
@@ -82,5 +68,16 @@ public class DiagnosisRepository(ApplicationDbContext context) : IDiagnosisRepos
 
         context.Diagnoses.RemoveRange(diagnosesToDelete);
         await context.SaveChangesAsync();
+    }
+
+    public async Task<List<Diagnosis>> GetAllMainDiagnoses()
+    {
+        return await context.Diagnoses
+            .Include(d => d.inspection)
+            .Include(d => d.inspection.patient)
+            .Include(d => d.icd)
+            .Include(d => d.inspection.doctor)
+            .Where(d => d.diagnosisType == DiagnosisType.Main)
+            .ToListAsync();
     }
 }
