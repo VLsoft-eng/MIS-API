@@ -144,7 +144,19 @@ public class InspectionService(
         var diagnoses = await diagnosisRepository.GetAllDiagnoses();
         if (icdRoots.Any())
         {
-           diagnoses = await diagnosisService.FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
+            foreach (var root in icdRoots)
+            {
+                var icd = await icdRepository.GetById(root);
+                if (icd == null)
+                {
+                    throw new IcdNotFoundException();
+                }
+                if (icd.parent != null)
+                {
+                    throw new IcdNotRootException();
+                }
+            }
+            diagnoses = await diagnosisService.FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
         }
         
         var inspections = diagnoses.Select(d => d.inspection).Distinct().ToList();

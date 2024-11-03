@@ -2,6 +2,7 @@ using Application.Abstractions.Mapper;
 using Application.Abstractions.Repository;
 using Application.Abstractions.Service;
 using Application.Dto;
+using Application.Exceptions;
 using Domain;
 
 namespace Application.BusinessLogic.Service;
@@ -19,6 +20,18 @@ public class ReportService(
         var diagnoses = await diagnosisRepository.GetAllDiagnoses();
         if (icdRoots.Any())
         {
+            foreach (var root in icdRoots)
+            {
+                var icd = await icdRepository.GetById(root);
+                if (icd == null)
+                {
+                    throw new IcdNotFoundException();
+                }
+                if (icd.parent != null)
+                {
+                    throw new IcdNotRootException();
+                }
+            }
             diagnoses = await diagnosisService.FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
         }
         else
