@@ -136,10 +136,11 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
+    var path = Path.Combine(AppContext.BaseDirectory, "Infrastructure", "Resources", "1.2.643.5.1.13.13.11.1005_2.27.json");
 
     try
     {
-        IcdLoader.LoadIcd(context);
+        IcdLoader.LoadIcd(context, path);
     }
     catch (Exception ex)
     {

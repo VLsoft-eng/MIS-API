@@ -5,16 +5,16 @@ namespace Infrastructure;
 
 public static class IcdLoader
 {
-    private static readonly string PATH_TO_ICD_JSON = @"C:\Users\bydeflt\Documents\1.2.643.5.1.13.13.11.1005_2.27.json";
 
-    public static void LoadIcd(ApplicationDbContext context)
+
+    public static void LoadIcd(ApplicationDbContext context, string path)
     {
         if (context.Icds.Any())
         {
             return;
         }
         
-        var json = File.ReadAllText(PATH_TO_ICD_JSON);
+        var json = File.ReadAllText(path);
         var icdJsonRecords = JsonSerializer.Deserialize<IcdRecordsJson>(json);
         
         if (icdJsonRecords == null)

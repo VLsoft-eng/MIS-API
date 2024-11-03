@@ -14,10 +14,9 @@ public class MissedInspectionsChecker(IInspectionRepository inspectionRepository
 
     private async Task CheckMissedInspections()
     {
-        var factory = new ConnectionFactory { HostName = "localhost" };
+        var factory = new ConnectionFactory { HostName = "rabbitmq", UserName = "user", Password = "password" };
         using var connection = factory.CreateConnection();
         using var channel = connection.CreateModel();
-        Console.WriteLine("0");
 
         channel.QueueDeclare(queue: "processing_message",
             durable: true,

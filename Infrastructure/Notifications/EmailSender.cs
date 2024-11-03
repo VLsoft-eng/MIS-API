@@ -18,7 +18,7 @@ public class EmailSender
 
     private void ConfigureEmailSender()
     {
-        var factory = new ConnectionFactory { HostName = "localhost" };
+        var factory = new ConnectionFactory { HostName = "rabbitmq", UserName = "user", Password = "password"};
         using var connection = factory.CreateConnection();
         var channel = connection.CreateModel();
         var consumer = new EventingBasicConsumer(channel);
@@ -30,6 +30,12 @@ public class EmailSender
             var notification = JsonSerializer.Deserialize<Notification>(message);
             await SendEmail(notification);
         };
+        
+        channel.QueueDeclare(queue: "processing_message",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null);
         
         channel.BasicConsume(queue: "processing_message", 
             autoAck: true, 
