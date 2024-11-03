@@ -20,7 +20,7 @@ public interface IPatientService
 
     Task<PatientPagedListDto> GetPatientsByParams(
         string? request,
-        Conclusion? conclusion,
+        List<Conclusion>? conclusions,
         SortingType? sorting,
         bool scheduledVisits,
         bool onlyMine,

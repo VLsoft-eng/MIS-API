@@ -281,7 +281,7 @@ public class PatientService : IPatientService
 
     public async Task<PatientPagedListDto> GetPatientsByParams(
         string? request,
-        Conclusion? conclusion,
+        List<Conclusion>? conclusions,
         SortingType? sorting,
         bool scheduledVisits,
         bool onlyMine,
@@ -311,9 +311,9 @@ public class PatientService : IPatientService
             patients = await FilterBySheduledVisits(patients);
         }
 
-        if (conclusion != null)
+        if (conclusions != null && conclusions.Any())
         {
-            patients = await FilterPatientsByConclusion(patients, conclusion.Value);
+            patients = await FilterPatientsByConclusion(patients, conclusions);
         }
 
         if (sorting != null)
@@ -390,11 +390,11 @@ public class PatientService : IPatientService
         return patients;
     }
 
-    private async Task<List<Patient>> FilterPatientsByConclusion(List<Patient> patients, Conclusion conclusion)
+    private async Task<List<Patient>> FilterPatientsByConclusion(List<Patient> patients, List<Conclusion> conclusions)
     {
         var allInspections = await _inspectionRepository.GetAllInspections();
         var patientsWithCurrentConclusion = allInspections
-            .Where(i => i.conclusion == conclusion)
+            .Where(i => conclusions.Contains(i.conclusion))
             .Select(i => i.patient.id)
             .Distinct()
             .ToList();

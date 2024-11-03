@@ -65,7 +65,7 @@ public class PatientController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PatientPagedListDto>> GetPatientList(
         [FromQuery] string? name,
-        [FromQuery] Conclusion? conclusion,
+        [FromQuery] List<Conclusion>? conclusions,
         [FromQuery] SortingType? sorting,
         [FromQuery] bool scheduledVisits = false,
         [FromQuery] bool onlyMine = false,
@@ -74,7 +74,7 @@ public class PatientController : ControllerBase
     {
         Guid doctorId = Guid.Parse(HttpContext.GetUserId());
         
-        return await _patientService.GetPatientsByParams(name, conclusion, sorting, scheduledVisits, onlyMine, page,
+        return await _patientService.GetPatientsByParams(name, conclusions, sorting, scheduledVisits, onlyMine, page,
             size, doctorId);
     }
     
