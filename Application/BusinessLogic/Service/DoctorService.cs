@@ -6,7 +6,6 @@ using Application.Dto;
 using Application.Exceptions;
 using Domain;
 using FluentValidation;
-using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 namespace Application.BusinessLogic.Service;
 

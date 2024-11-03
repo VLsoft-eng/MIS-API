@@ -5,17 +5,8 @@ using RabbitMQ.Client;
 
 namespace Infrastructure.Notifications.QuartzJobs;
 
-public class MissedInspectionsChecker : IJob
+public class MissedInspectionsChecker(IInspectionRepository inspectionRepository) : IJob
 {
-    private readonly IInspectionRepository _inspectionRepository;
-
-    public MissedInspectionsChecker(
-        IInspectionRepository inspectionRepository
-        )
-    {
-        _inspectionRepository = inspectionRepository;
-    }
-
     public async Task Execute(IJobExecutionContext context)
     {
         await CheckMissedInspections();
@@ -34,7 +25,7 @@ public class MissedInspectionsChecker : IJob
             autoDelete: false,
             arguments: null);
 
-        var inspections = await _inspectionRepository.GetMissedInspections();
+        var inspections = await inspectionRepository.GetMissedInspections();
         foreach (var inspection  in inspections)
         {
             var email = inspection.doctor.email;
@@ -52,7 +43,7 @@ public class MissedInspectionsChecker : IJob
                 routingKey: "processing_message",
                 basicProperties: null,
                 body: body);
-            await _inspectionRepository.UpdateIsNotified(inspection.id, true);
+            await inspectionRepository.UpdateIsNotified(inspection.id, true);
         }
     }
 }

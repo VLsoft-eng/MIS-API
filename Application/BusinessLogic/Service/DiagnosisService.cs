@@ -4,7 +4,6 @@ using Application.Abstractions.Service;
 using Application.Dto;
 using Domain;
 using FluentValidation;
-using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 namespace Application.BusinessLogic.Service;
 
@@ -53,7 +52,7 @@ public class DiagnosisService : IDiagnosisService
     public async Task<List<DiagnosisDto>> GetDiagnosesByInspectionId(Guid inspectionId)
     {
         var diagnoses = await _diagnosisRepository.GetDiagnosesByInspectionId(inspectionId);
-        return diagnoses.Select(d => _diagnosisMapper.ToDto(d)).ToList();
+        return diagnoses!.Select(d => _diagnosisMapper.ToDto(d)).ToList();
     }
     
     public async Task<List<Diagnosis>> FilterDiagnosisByIcdRoots(List<Diagnosis> diagnoses, List<Guid> icdRoots)

@@ -9,27 +9,17 @@ namespace Api.Controller;
 
 [ApiController]
 [Route("api/consultation")]
-public class ConsultationController : ControllerBase
+public class ConsultationController(
+    IConsultationService consultationService,
+    ICommentService commentService,
+    IInspectionService inspectionService)
+    : ControllerBase
 {
-    private readonly IConsultationService _consultationService;
-    private readonly ICommentService _commentService;
-    private readonly IInspectionService _inspectionService;
-
-    public ConsultationController(
-        IConsultationService consultationService,
-        ICommentService commentService,
-        IInspectionService inspectionService)
-    {
-        _consultationService = consultationService;
-        _commentService = commentService;
-        _inspectionService = inspectionService;
-    }
-
     [Authorize]
     [HttpPut("comment/{id}")]
     public async Task EditComment(Guid id, [FromBody] CommentEditRequest request)
     {
-        await _commentService.UpdateComment(id, request);
+        await commentService.UpdateComment(id, request);
     }
 
     [Authorize]
@@ -37,14 +27,14 @@ public class ConsultationController : ControllerBase
     public async Task<ActionResult<Guid>> CreateComment(Guid id, [FromBody] ConsultationCommentCreateRequest request)
     {
         Guid doctorId = Guid.Parse(HttpContext.GetUserId());
-        return await _commentService.CreateComment(id, doctorId, request);
+        return await commentService.CreateComment(id, doctorId, request);
     }
 
     [Authorize]
     [HttpGet("{id}")]
     public async Task<ActionResult<ConsultationDto>> GetConsultationById(Guid id)
     {
-        return await _consultationService.GetConsultation(id);
+        return await consultationService.GetConsultation(id);
     }
 
     [Authorize]
@@ -56,7 +46,7 @@ public class ConsultationController : ControllerBase
         [FromQuery] int size = 5)
     {
         Guid doctorId = Guid.Parse(HttpContext.GetUserId());
-        return await _inspectionService.GetInspectionsWithDoctorSpeciality(doctorId, grouped, icdRoots, page, size);
+        return await inspectionService.GetInspectionsWithDoctorSpeciality(doctorId, grouped, icdRoots, page, size);
     }
     
    

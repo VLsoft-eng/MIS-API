@@ -10,27 +10,20 @@ namespace Api.Controller;
 
 [ApiController]
 [Route("api/patient")]
-public class PatientController : ControllerBase
+public class PatientController(IPatientService patientService) : ControllerBase
 {
-    private readonly IPatientService _patientService;
-
-    public PatientController(IPatientService patientService)
-    {
-        _patientService = patientService;
-    }
-
     [Authorize]
     [HttpPost]
     public async Task CreatePatient([FromBody] PatientCreateRequest request)
     {
-        await _patientService.Create(request);
+        await patientService.Create(request);
     }
 
     [Authorize]
     [HttpGet("{id}")]
     public async Task<ActionResult<PatientDto>> GetPatientById(Guid id)
     {
-        return await _patientService.GetPatientById(id);
+        return await patientService.GetPatientById(id);
     }
 
     [Authorize]
@@ -39,14 +32,14 @@ public class PatientController : ControllerBase
         [FromBody] InspectionCreateRequest request)
     {
         Guid doctorId = Guid.Parse(HttpContext.GetUserId());
-        return await _patientService.CreatePatientsInspection(id, doctorId, request);
+        return await patientService.CreatePatientsInspection(id, doctorId, request);
     }
 
     [Authorize]
     [HttpGet("{id}/inspections/search")]
     public async Task<ActionResult<List<InspectionShortDto>>> GetPatientInspectionWithoutChilds(Guid id, [FromQuery] string? request)
     {
-        return await _patientService.SearchPatientInspectionsByParams(id, request);
+        return await patientService.SearchPatientInspectionsByParams(id, request);
     }
 
     [Authorize]
@@ -58,7 +51,7 @@ public class PatientController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int size = 5)
     {
-        return await _patientService.GetPatientInspectionsByParams(id, grouped, icdRoots, page, size);
+        return await patientService.GetPatientInspectionsByParams(id, grouped, icdRoots, page, size);
     }
 
     [Authorize]
@@ -74,7 +67,7 @@ public class PatientController : ControllerBase
     {
         Guid doctorId = Guid.Parse(HttpContext.GetUserId());
         
-        return await _patientService.GetPatientsByParams(name, conclusions, sorting, scheduledVisits, onlyMine, page,
+        return await patientService.GetPatientsByParams(name, conclusions, sorting, scheduledVisits, onlyMine, page,
             size, doctorId);
     }
     

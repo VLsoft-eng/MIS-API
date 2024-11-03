@@ -6,17 +6,9 @@ using Application.Exceptions;
 
 namespace Application.BusinessLogic.Service;
 
-public class SpecialityService : ISpecialityService
+public class SpecialityService(ISpecialityRepository specialityRepository, ISpecialityMapper specialityMapper)
+    : ISpecialityService
 {
-    private readonly ISpecialityRepository _specialityRepository;
-    private readonly ISpecialityMapper _specialityMapper;
-
-    public SpecialityService(ISpecialityRepository specialityRepository, ISpecialityMapper specialityMapper)
-    {
-        _specialityRepository = specialityRepository;
-        _specialityMapper = specialityMapper;
-    }
-
     public async Task<SpecialitiesPagedListDto> GetByNameAndParams(string? name, int page, int size)
     {
         if (size <= 0 || page <= 0)
@@ -24,7 +16,7 @@ public class SpecialityService : ISpecialityService
             throw new InvalidPaginationParamsException();
         }
 
-        var specialities = await _specialityRepository.GetAllSpecialities();
+        var specialities = await specialityRepository.GetAllSpecialities();
 
         if (name != null)
         {
@@ -39,7 +31,7 @@ public class SpecialityService : ISpecialityService
             throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
         }
         
-        var specialitiesDtos = _specialityMapper.ToDto(specialities);
+        var specialitiesDtos = specialityMapper.ToDto(specialities);
         var pageInfoDto = new PageInfoDto(size, totalPages, page);
 
         return new SpecialitiesPagedListDto(specialitiesDtos, pageInfoDto);

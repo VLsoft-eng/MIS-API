@@ -6,15 +6,8 @@ using Application.Exceptions;
 
 namespace Application.BusinessLogic.Mapper;
 
-public class DoctorMapper : IDoctorMapper
+public class DoctorMapper(ISpecialityRepository specialityRepository) : IDoctorMapper
 {
-    private readonly ISpecialityRepository _specialityRepository;
-
-    public DoctorMapper(ISpecialityRepository specialityRepository)
-    {
-        _specialityRepository = specialityRepository;
-    }
-    
     public DoctorDto ToDto(Doctor doctor)
     { 
         return new DoctorDto(
@@ -30,7 +23,7 @@ public class DoctorMapper : IDoctorMapper
 
     public async Task<Doctor> ToEntity(DoctorRegistrationRequest request)
     {
-        var speciality = await _specialityRepository.GetById(request.speciality);
+        var speciality = await specialityRepository.GetById(request.speciality);
         
         if (speciality == null)
         {

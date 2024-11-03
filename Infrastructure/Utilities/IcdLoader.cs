@@ -5,7 +5,7 @@ namespace Infrastructure;
 
 public static class IcdLoader
 {
-    private static string PATH_TO_ICD_JSON = @"C:\Users\bydeflt\Documents\1.2.643.5.1.13.13.11.1005_2.27.json";
+    private static readonly string PATH_TO_ICD_JSON = @"C:\Users\bydeflt\Documents\1.2.643.5.1.13.13.11.1005_2.27.json";
 
     public static void LoadIcd(ApplicationDbContext context)
     {

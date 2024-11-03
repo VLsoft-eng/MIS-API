@@ -1,11 +1,7 @@
 using System.Text;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Application.Abstractions.Repository;
-using Domain;
 using Infrastructure.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Extensions;
@@ -36,8 +32,8 @@ public static class ApiExtensions
                     OnTokenValidated = async context =>
                     {
                         var tokenRepository = context.HttpContext.RequestServices.GetRequiredService<ITokenRepository>();
-                        var tokenIdClaim = context.Principal.FindFirst("tokenId")?.Value;
-                        var token = await tokenRepository.GetById(Guid.Parse(tokenIdClaim));
+                        var tokenIdClaim = context.Principal!.FindFirst("tokenId")?.Value;
+                        var token = await tokenRepository.GetById(Guid.Parse(tokenIdClaim!));
 
                         if (token != null)
                         {

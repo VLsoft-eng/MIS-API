@@ -8,36 +8,24 @@ using FluentValidation;
 
 namespace Application.BusinessLogic.Service;
 
-public class ConsultationService : IConsultationService
+public class ConsultationService(
+    IConsultationRepository consultationRepository,
+    ISpecialityMapper specialityMapper,
+    IConsultationMapper consultationMapper,
+    ICommentService commentService)
+    : IConsultationService
 {
-    private readonly IConsultationRepository _consultationRepository;
-    private readonly ISpecialityMapper _specialityMapper;
-    private readonly IConsultationMapper _consultationMapper;
-    private readonly ICommentService _commentService;
-
-    public ConsultationService(
-        IConsultationRepository consultationRepository,
-        ISpecialityMapper specialityMapper,
-        IConsultationMapper consultationMapper,
-        ICommentService commentService)
-    {
-        _consultationRepository = consultationRepository;
-        _specialityMapper = specialityMapper;
-        _consultationMapper = consultationMapper;
-        _commentService = commentService;
-    }
-    
     public async Task<ConsultationDto> GetConsultation(Guid consultationId)
     {
-        var consultation = await _consultationRepository.GetById(consultationId);
+        var consultation = await consultationRepository.GetById(consultationId);
         if (consultation == null)
         {
             throw new ConsultationNotFoundException();
         }
 
-        var commentDtos = await _commentService.GetCommentsByConsultationId(consultationId);
-        var specialityDto = _specialityMapper.ToDto(consultation.speciality);
-        var consultationDto = _consultationMapper.ToDto(consultation, specialityDto, commentDtos);
+        var commentDtos = await commentService.GetCommentsByConsultationId(consultationId);
+        var specialityDto = specialityMapper.ToDto(consultation.speciality);
+        var consultationDto = consultationMapper.ToDto(consultation, specialityDto, commentDtos);
         
         return consultationDto;
     }

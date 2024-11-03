@@ -10,7 +10,7 @@ public class CommentMapper : ICommentMapper
         InspectionCommentCreateRequest request,
         Doctor doctor, 
         Consultation consultation, 
-        Comment parent)
+        Comment? parent)
     {
         return new Comment
         {
@@ -34,7 +34,7 @@ public class CommentMapper : ICommentMapper
         ConsultationCommentCreateRequest request,
         Doctor doctor,
         Consultation consultation,
-        Comment parent)
+        Comment? parent)
     {
         return new Comment
         {

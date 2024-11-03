@@ -6,21 +6,12 @@ using Application.Exceptions;
 
 namespace Application.BusinessLogic.Service;
 
-public class IcdService : IIcdService
+public class IcdService(IIcdRepository icdRepository, IIcdMapper icdMapper) : IIcdService
 {
-    private readonly IIcdRepository _icdRepository;
-    private readonly IIcdMapper _icdMapper;
-
-    public IcdService(IIcdRepository icdRepository, IIcdMapper icdMapper)
-    {
-        _icdRepository = icdRepository;
-        _icdMapper = icdMapper;
-    }
-
     public async Task<List<Icd10RecordDto>> GetRootElements()
     {
-        var icds = await _icdRepository.GetRootElements();
-        var icdDtos = _icdMapper.ToDto(icds);
+        var icds = await icdRepository.GetRootElements();
+        var icdDtos = icdMapper.ToDto(icds);
 
         return icdDtos;
     }
@@ -32,7 +23,7 @@ public class IcdService : IIcdService
             throw new InvalidPaginationParamsException();
         }
 
-        var icds = await _icdRepository.GetAllIcds();
+        var icds = await icdRepository.GetAllIcds();
         if (name != null)
         {
             icds = icds.Where(i => i.сode.ToLower().Contains(name.ToLower()) ||
@@ -53,7 +44,7 @@ public class IcdService : IIcdService
             throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
         }
         
-        var icdsDtos = _icdMapper.ToDto(pagedIcds);
+        var icdsDtos = icdMapper.ToDto(pagedIcds);
         var pageInfoDto = new PageInfoDto(size, totalPages, page);
 
         return new Icd10SearchDto(icdsDtos, pageInfoDto);

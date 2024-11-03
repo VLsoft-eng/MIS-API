@@ -4,24 +4,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.RepositoryImpl;
 
-public class ConsultationRepository : IConsultationRepository
+public class ConsultationRepository(ApplicationDbContext context) : IConsultationRepository
 {
-    private readonly ApplicationDbContext _context;
-
-    public ConsultationRepository(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task Create(Consultation consultation)
     {
-        await _context.Consultations.AddAsync(consultation);
-        await _context.SaveChangesAsync();
+        await context.Consultations.AddAsync(consultation);
+        await context.SaveChangesAsync();
     }
 
     public async Task<Consultation?> GetById(Guid consultationId)
     {
-        return await _context.Consultations
+        return await context.Consultations
             .Include(c => c.speciality)
             .Include(c => c.inspection)
             .FirstOrDefaultAsync(c => c.id == consultationId);
@@ -29,7 +22,7 @@ public class ConsultationRepository : IConsultationRepository
 
     public async Task<List<Consultation>> GetBySpecialityId(Guid id)
     {
-        return await _context.Consultations
+        return await context.Consultations
             .Include(c => c.speciality)
             .Include(c => c.inspection)
             .Where(c => c.speciality.id == id)
@@ -38,7 +31,7 @@ public class ConsultationRepository : IConsultationRepository
 
     public async Task<List<Consultation>> GetByInspectionId(Guid id)
     {
-        return await _context.Consultations
+        return await context.Consultations
             .Include(c => c.speciality)
             .Include(c => c.inspection)
             .Where(c => c.inspection.id == id)

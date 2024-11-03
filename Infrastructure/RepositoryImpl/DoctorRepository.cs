@@ -4,37 +4,30 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.RepositoryImpl;
 
-public class DoctorRepository : IDoctorRepository
+public class DoctorRepository(ApplicationDbContext context) : IDoctorRepository
 {
-    private readonly ApplicationDbContext _context;
-
-    public DoctorRepository(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task Create(Doctor doctor)
     {
-        await _context.Doctors.AddAsync(doctor);
-        await _context.SaveChangesAsync();
+        await context.Doctors.AddAsync(doctor);
+        await context.SaveChangesAsync();
     }
 
     public async Task Update(Doctor doctor)
     {
-        _context.Entry(doctor).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
+        context.Entry(doctor).State = EntityState.Modified;
+        await context.SaveChangesAsync();
     }
 
     public async Task<Doctor?> GetById(Guid id)
     {
-        return await _context.Doctors
+        return await context.Doctors
             .Include(d => d.speciality)
             .FirstOrDefaultAsync(i => i.id == id);
     }
 
     public async Task<Doctor?> GetByEmail(string email)
     {
-        return await _context.Doctors
+        return await context.Doctors
             .FirstOrDefaultAsync(d => d.email == email);
     }
 }

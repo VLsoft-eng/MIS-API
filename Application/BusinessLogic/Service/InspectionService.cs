@@ -10,76 +10,46 @@ using ValidationException = System.ComponentModel.DataAnnotations.ValidationExce
 
 namespace Application.BusinessLogic.Service;
 
-public class InspectionService : IInspectionService
+public class InspectionService(
+    IInspectionRepository inspectionRepository,
+    IConsultationRepository consultationRepository,
+    IDoctorMapper doctorMapper,
+    IPatientMapper patientMapper,
+    IConsultationMapper consultationMapper,
+    ISpecialityMapper specialityMapper,
+    ICommentService commentService,
+    IInspectionMapper inspectionMapper,
+    IValidator<InspectionEditRequest> inspectionEditValidator,
+    IIcdRepository icdRepository,
+    IDiagnosisService diagnosisService,
+    IDoctorRepository doctorRepository,
+    IDiagnosisRepository diagnosisRepository)
+    : IInspectionService
 {
-    private readonly IInspectionRepository _inspectionRepository;
-    private readonly IConsultationRepository _consultationRepository;
-    private readonly IDoctorMapper _doctorMapper;
-    private readonly IPatientMapper _patientMapper;
-    private readonly IConsultationMapper _consultationMapper;
-    private readonly ISpecialityMapper _specialityMapper;
-    private readonly ICommentService _commentService;
-    private readonly IInspectionMapper _inspectionMapper;
-    private readonly IValidator<InspectionEditRequest> _inspectionEditValidator;
-    private readonly IIcdRepository _icdRepository;
-    private readonly IDiagnosisService _diagnosisService;
-    private readonly IDoctorRepository _doctorRepository;
-    private IDiagnosisRepository _diagnosisRepository;
-    
-    public InspectionService(
-        IInspectionRepository inspectionRepository,
-        IConsultationRepository consultationRepository,
-        IDoctorMapper doctorMapper,
-        IPatientMapper patientMapper,
-        IConsultationMapper consultationMapper,
-        ISpecialityMapper specialityMapper,
-        ICommentService commentService,
-        IInspectionMapper inspectionMapper,
-        IValidator<InspectionEditRequest> inspectionEditValidator,
-        IIcdRepository icdRepository,
-        IDiagnosisService diagnosisService,
-        IDoctorRepository doctorRepository,
-        IDiagnosisRepository diagnosisRepository)
-    {
-        _inspectionRepository = inspectionRepository;
-        _consultationRepository = consultationRepository;
-        _doctorMapper = doctorMapper;
-        _patientMapper = patientMapper;
-        _consultationMapper = consultationMapper;
-        _specialityMapper = specialityMapper;
-        _inspectionMapper = inspectionMapper;
-        _inspectionEditValidator = inspectionEditValidator;
-        _icdRepository = icdRepository;
-        _diagnosisService = diagnosisService;
-        _doctorRepository = doctorRepository;
-        _diagnosisRepository = diagnosisRepository;
-        _commentService = commentService;
-    }
-
     public async Task<InspectionDto> GetInspectionById(Guid id)
     {
-        var inspection = await _inspectionRepository.GetById(id);
+        var inspection = await inspectionRepository.GetById(id);
         if (inspection == null)
         {
             throw new InspectionNotFoundException();
         }
         
-        var consultations = await _consultationRepository.GetByInspectionId(id);
-        var baseInspection = await _inspectionRepository.GetBaseInspection(id);
+        var consultations = await consultationRepository.GetByInspectionId(id);
+        var baseInspection = await inspectionRepository.GetBaseInspection(id);
         var patient = inspection.patient;
         var doctor = inspection.doctor;
 
-        var doctorDto = _doctorMapper.ToDto(doctor);
-        var patientDto = _patientMapper.ToDto(patient);
-        var diagnosisDtos = await _diagnosisService.GetDiagnosesByInspectionId(inspection.id);
+        var doctorDto = doctorMapper.ToDto(doctor);
+        var patientDto = patientMapper.ToDto(patient);
+        var diagnosisDtos = await diagnosisService.GetDiagnosesByInspectionId(inspection.id);
         var consultationDtos = new List<InspectionConsultationDto>();
         foreach (var consultation in consultations)
         {
-            var rootCommentDto = await _commentService.GetRootCommentByConsultation(consultation.id);
-            var consultationSpecialityDto = _specialityMapper.ToDto(consultation.speciality);
-            var commentsCount =  await _commentService.GetCommentsCountByConsultation(consultation.id);
+            var rootCommentDto = await commentService.GetRootCommentByConsultation(consultation.id);
+            var consultationSpecialityDto = specialityMapper.ToDto(consultation.speciality);
+            var commentsCount =  await commentService.GetCommentsCountByConsultation(consultation.id);
             
-            var consultationDto = _consultationMapper.ToInspectionConsultationDto(
+            var consultationDto = consultationMapper.ToInspectionConsultationDto(
                 consultation,
                 consultationSpecialityDto,
                 rootCommentDto,
@@ -88,13 +58,13 @@ public class InspectionService : IInspectionService
             consultationDtos.Add(consultationDto);
         }
         
-        return _inspectionMapper.ToDto(inspection, baseInspection == null ? null : baseInspection.id, patientDto, doctorDto, diagnosisDtos,
+        return inspectionMapper.ToDto(inspection, baseInspection == null ? null : baseInspection.id, patientDto, doctorDto, diagnosisDtos,
             consultationDtos);
     }
 
     public async Task EditInspection(Guid inspectionId, InspectionEditRequest request, Guid doctorId)
     {
-        var inspection = await _inspectionRepository.GetById(inspectionId);
+        var inspection = await inspectionRepository.GetById(inspectionId);
         if (inspection == null)
         {
             throw new InspectionNotFoundException();
@@ -105,32 +75,32 @@ public class InspectionService : IInspectionService
             throw new DoesntHaveRightsException();
         }
 
-        var validation = await _inspectionEditValidator.ValidateAsync(request);
+        var validation = await inspectionEditValidator.ValidateAsync(request);
         if (!validation.IsValid)
         {
             throw new ValidationException(validation.Errors[0].ErrorMessage);
         }
 
-        await _diagnosisService.DeleteDiagnosesByInspectionId(inspection.id);
+        await diagnosisService.DeleteDiagnosesByInspectionId(inspection.id);
         var newDiagnoses = request.diagnoses;
         foreach (var diagnosis in newDiagnoses)
         {
-            var icd = await _icdRepository.GetById(diagnosis.icdDiagnosisId);
+            var icd = await icdRepository.GetById(diagnosis.icdDiagnosisId);
             if (icd == null)
             {
                 throw new IcdNotFoundException();
             }
 
-            await _diagnosisService.CreateDiagnosis(diagnosis, inspection, icd);
+            await diagnosisService.CreateDiagnosis(diagnosis, inspection, icd);
         }
         
-        _inspectionMapper.UpdateInspectionEntity(inspection, request);
-        await _inspectionRepository.Update(inspection);
+        inspectionMapper.UpdateInspectionEntity(inspection, request);
+        await inspectionRepository.Update(inspection);
     }
 
     public async Task<List<InspectionFullDto>> GetChainByRoot(Guid rootId)
     {
-        var rootInspection = await _inspectionRepository.GetById(rootId);
+        var rootInspection = await inspectionRepository.GetById(rootId);
         if (rootInspection == null)
         {
             throw new InspectionNotFoundException();
@@ -141,18 +111,18 @@ public class InspectionService : IInspectionService
             throw new InspectionNotRootException();
         }
 
-        var chain = await _inspectionRepository.GetChainByRoot(rootId);
+        var chain = await inspectionRepository.GetChainByRoot(rootId);
 
         var inspectionFullDtos = new List<InspectionFullDto>();
         
         foreach (var inspection in chain)
         {
-            bool hasNested = await _inspectionRepository.IsHasChild(inspection.id);
+            bool hasNested = await inspectionRepository.IsHasChild(inspection.id);
             bool hasChain = hasNested || inspection.previousInspection != null;
 
-            var mainDiagnosisDto = await _diagnosisService.GetMainDIagnosisByInspectionId(inspection.id);
+            var mainDiagnosisDto = await diagnosisService.GetMainDIagnosisByInspectionId(inspection.id);
             
-            var inspectionFullDto = _inspectionMapper.ToInspectionFullDto(inspection, mainDiagnosisDto, hasChain, hasNested);
+            var inspectionFullDto = inspectionMapper.ToInspectionFullDto(inspection, mainDiagnosisDto, hasChain, hasNested);
             inspectionFullDtos.Add(inspectionFullDto);
         }
 
@@ -171,10 +141,10 @@ public class InspectionService : IInspectionService
             throw new InvalidPaginationParamsException();
         }
         
-        var diagnoses = await _diagnosisRepository.GetAllDiagnoses();
+        var diagnoses = await diagnosisRepository.GetAllDiagnoses();
         if (icdRoots.Any())
         {
-           diagnoses = await _diagnosisService.FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
+           diagnoses = await diagnosisService.FilterDiagnosisByIcdRoots(diagnoses, icdRoots);
         }
         
         var inspections = diagnoses.Select(d => d.inspection).Distinct().ToList();
@@ -184,7 +154,7 @@ public class InspectionService : IInspectionService
             var filteredInspections = new List<Inspection>();
             foreach (var inspection in inspections)
             {
-                var inspectionEntity = await _inspectionRepository.GetById(inspection.id);
+                var inspectionEntity = await inspectionRepository.GetById(inspection.id);
                 if (inspectionEntity.previousInspection == null)
                 {
                     filteredInspections.Add(inspectionEntity);
@@ -194,10 +164,10 @@ public class InspectionService : IInspectionService
             inspections = filteredInspections;
         }
 
-        var doctor = await _doctorRepository.GetById(doctorId);
-        var doctorSpecialtyId = doctor.speciality.id;
+        var doctor = await doctorRepository.GetById(doctorId);
+        var doctorSpecialtyId = doctor!.speciality.id;
         
-        var consultations = await _consultationRepository.GetBySpecialityId(doctorSpecialtyId);
+        var consultations = await consultationRepository.GetBySpecialityId(doctorSpecialtyId);
         var inspectionIds = consultations.Select(c => c.inspection.id).Distinct().ToList();
         
         inspections = inspections.Where(i => inspectionIds.Contains(i.id)).ToList();
@@ -210,12 +180,12 @@ public class InspectionService : IInspectionService
         List<InspectionFullDto> inspectionFullDtos = new List<InspectionFullDto>();
         foreach (var inspection in pagedInspections)
         {
-            bool hasNested = await _inspectionRepository.IsHasChild(inspection.id);
+            bool hasNested = await inspectionRepository.IsHasChild(inspection.id);
             bool hasChain = (hasNested || inspection.previousInspection != null);
 
-            var mainDiagnosesDto = await _diagnosisService.GetMainDIagnosisByInspectionId(inspection.id);
+            var mainDiagnosesDto = await diagnosisService.GetMainDIagnosisByInspectionId(inspection.id);
             var inspectionFullDto =
-                _inspectionMapper.ToInspectionFullDto(inspection, mainDiagnosesDto, hasChain, hasNested);
+                inspectionMapper.ToInspectionFullDto(inspection, mainDiagnosesDto, hasChain, hasNested);
             inspectionFullDtos.Add(inspectionFullDto);
         }
 

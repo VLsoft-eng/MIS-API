@@ -17,7 +17,7 @@ public interface ICommentMapper
         ConsultationCommentCreateRequest request,
         Doctor doctor,
         Consultation consultation,
-        Comment parent);
+        Comment? parent);
 
     CommentDto ToDto(Comment comment);
     InspectionCommentDto ToInspectionCommentDto(Comment comment, DoctorDto doctor);

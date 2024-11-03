@@ -8,19 +8,12 @@ namespace Api.Controller;
 
 [ApiController]
 [Route("api/doctor/")]
-public class DoctorController : ControllerBase
+public class DoctorController(IDoctorService doctorService) : ControllerBase
 {
-    private readonly IDoctorService _doctorService;
-
-    public DoctorController(IDoctorService doctorService)
-    {
-        _doctorService = doctorService;
-    }
-
     [HttpPost("register")]
     public async Task<ActionResult<TokenDto>> Register([FromBody] DoctorRegistrationRequest request)
     {
-        var tokenDto = await _doctorService.Register (request);
+        var tokenDto = await doctorService.Register (request);
 
         return Ok(tokenDto);
     }
@@ -29,25 +22,25 @@ public class DoctorController : ControllerBase
     [HttpPost("logout")]
     public async Task Logout()
     {
-        Guid tokenId = Guid.Parse(HttpContext.GetTokenId());
-        string tokenValue = HttpContext.GetJwtToken();
-        DateTime expiresAt = HttpContext.GetTokenExpiration().Value;
+        Guid tokenId = Guid.Parse(HttpContext.GetTokenId()!);
+        string tokenValue = HttpContext.GetJwtToken()!;
+        DateTime expiresAt = HttpContext.GetTokenExpiration()!.Value;
         
-        await _doctorService.Logout(tokenId, tokenValue, expiresAt);
+        await doctorService.Logout(tokenId, tokenValue, expiresAt);
     }
     
     [HttpPost("login")]
     public async Task<ActionResult<TokenDto>> Login([FromBody] DoctorLoginRequest request)
     {
-        return await _doctorService.Login(request);
+        return await doctorService.Login(request);
     }
 
     [Authorize]
     [HttpGet("profile")]
     public async Task<ActionResult<DoctorDto>> GetProfile()
     {
-        Guid id = Guid.Parse(HttpContext.GetUserId());
-        var doctorDto = await _doctorService.GetDoctorInfo(id);
+        Guid id = Guid.Parse(HttpContext.GetUserId()!);
+        var doctorDto = await doctorService.GetDoctorInfo(id);
         return Ok(doctorDto);
     }
 
@@ -55,9 +48,9 @@ public class DoctorController : ControllerBase
     [HttpPut("profile")]
     public async Task EditProfile([FromBody] DoctorEditRequest request)
     {
-        Guid id = Guid.Parse(HttpContext.GetUserId());
+        Guid id = Guid.Parse(HttpContext.GetUserId()!);
         
-        await _doctorService.EditUserProfile(id, request);
+        await doctorService.EditUserProfile(id, request);
     }
     
 

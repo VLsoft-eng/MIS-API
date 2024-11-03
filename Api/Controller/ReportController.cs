@@ -7,15 +7,8 @@ namespace Api.Controller;
 
 [ApiController]
 [Route("api/report")]
-public class ReportController : ControllerBase
+public class ReportController(IReportService reportService) : ControllerBase
 {
-    private IReportService _reportService;
-
-    public ReportController(IReportService reportService)
-    {
-        _reportService = reportService;
-    }
-
     [Authorize]
     [HttpGet("icdrootsreport")]
     public async Task<ActionResult<IcdRootsReportDto>> GetIcdRootsReport(
@@ -28,6 +21,6 @@ public class ReportController : ControllerBase
             icdRoots = new List<Guid>();
         }
         
-        return await _reportService.GetReport(start, end, icdRoots);
+        return await reportService.GetReport(start, end, icdRoots);
     }
 }

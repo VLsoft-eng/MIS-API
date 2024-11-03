@@ -1,23 +1,16 @@
-using System.ComponentModel.DataAnnotations;
 using Application.Dto;
 using Application.Exceptions;
+using FluentValidation;
 
 namespace Api.Middleware;
 
-public class ExceptionHandlerMiddleware
+public class ExceptionHandlerMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate _next;
-
-    public ExceptionHandlerMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
     public async Task Invoke(HttpContext httpContext)
     {
         try
         {
-            await _next.Invoke(httpContext);
+            await next.Invoke(httpContext);
         }
         catch (ValidationException e)
         {

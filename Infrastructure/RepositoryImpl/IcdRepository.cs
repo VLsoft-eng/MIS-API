@@ -4,39 +4,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.RepositoryImpl;
 
-public class IcdRepository : IIcdRepository
+public class IcdRepository(ApplicationDbContext context) : IIcdRepository
 {
-    private readonly ApplicationDbContext _context;
-
-    public IcdRepository(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task <List<Icd>> GetRootElements()
     {
-        return await _context.Icds
+        return await context.Icds
             .Where(icd => icd.parent == null)
             .ToListAsync();
     }
 
     public async Task<List<Icd>> GetAllIcds()
     {
-        return await _context.Icds
+        return await context.Icds
             .Include(i => i.parent)
             .ToListAsync();
     }
 
     public async Task<Icd?> GetById(Guid id)
     {
-        return await _context.Icds
+        return await context.Icds
             .Include(i => i.parent)
             .FirstOrDefaultAsync(i => i.id == id);
     }
 
     public async Task<Icd> GetRootByIcdId(Guid id)
     {
-        var icd = await _context.Icds
+        var icd = await context.Icds
             .Include(i => i.parent)
             .Where(i => i.id == id)
             .FirstOrDefaultAsync();
