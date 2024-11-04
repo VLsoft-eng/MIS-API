@@ -11,28 +11,30 @@ namespace Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.InsertData(
-                table: "specialities",
-                columns: new[] {"id", "create_time", "name" }, 
+                table: "speciality",
+                columns: new[] { "id", "create_time", "name" },
                 values: new object[,]
                 {
-                    { Guid.NewGuid(), DateTime.UtcNow, "Кардиология" },
-                    { Guid.NewGuid(),DateTime.UtcNow, "Хирургия" },
-                    { Guid.NewGuid(), DateTime.UtcNow, "Педиатрия" }
-                });
+                    { Guid.NewGuid(), DateTime.UtcNow, "Cardiology" },
+                    { Guid.NewGuid(), DateTime.UtcNow, "Neurology" },
+                    { Guid.NewGuid(), DateTime.UtcNow, "Orthopedics" }
+                }
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DeleteData(
-                table: "specialities",
+                table: "speciality",
                 keyColumn: "name",
                 keyValues: new object[]
                 {
-                    "Кардиология",
-                    "Хирургия",
-                    "Педиатрия"
-                });
+                    "Cardiology",
+                    "Neurology",
+                    "Orthopedics"
+                }
+            );
         }
     }
 }
