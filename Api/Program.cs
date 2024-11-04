@@ -148,16 +148,16 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+
 using (var scope = app.Services.CreateScope())
 {
     var emailSender = scope.ServiceProvider.GetRequiredService<EmailSender>();
 }
 
-app.UseHttpsRedirection();
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
