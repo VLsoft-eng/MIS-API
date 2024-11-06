@@ -10,6 +10,8 @@ namespace Infrastructure.Notifications;
 public class EmailSender
 {
     private readonly string _senderEmailAddress = "info@mis.ru";
+    private IConnection _connection;
+    private IModel _channel;
 
     public EmailSender()
     {
@@ -19,9 +21,9 @@ public class EmailSender
     private void ConfigureEmailSender()
     {
         var factory = new ConnectionFactory { HostName = "rabbitmq", UserName = "user", Password = "password"};
-        using var connection = factory.CreateConnection();
-        var channel = connection.CreateModel();
-        var consumer = new EventingBasicConsumer(channel);
+        _connection = factory.CreateConnection();
+        _channel = _connection.CreateModel();
+        var consumer = new EventingBasicConsumer(_channel);
 
         consumer.Received += async (model, ea) =>
         {
@@ -29,16 +31,17 @@ public class EmailSender
             var message = Encoding.UTF8.GetString(body);
             var notification = JsonSerializer.Deserialize<Notification>(message);
             await SendEmail(notification);
+            _channel.BasicAck(ea.DeliveryTag, multiple: false);
         };
         
-        channel.QueueDeclare(queue: "processing_message",
+        _channel.QueueDeclare(queue: "processing_message",
             durable: true,
             exclusive: false,
             autoDelete: false,
             arguments: null);
         
-        channel.BasicConsume(queue: "processing_message", 
-            autoAck: true, 
+        _channel.BasicConsume(queue: "processing_message", 
+            autoAck: false, 
             consumer: consumer);
     }
 

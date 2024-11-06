@@ -137,15 +137,25 @@ public class InspectionRepository(ApplicationDbContext context) : IInspectionRep
 
     public async Task<List<Inspection>> GetMissedInspections()
     {
-        return await context.Inspections
+        var inspectionsToCheck = await context.Inspections
             .Where(i =>
-                i.date.AddHours(5) <= DateTime.UtcNow &&
+                i.date <= DateTime.UtcNow &&
                 i.conclusion != Conclusion.Death &&
-                i.nextVisitDate == null &&
                 i.isNotified != true)
             .Include(i => i.doctor)
             .Include(i => i.patient)
             .ToListAsync();
+
+        List <Inspection> missedInspections = new List<Inspection>();
+        foreach (var inspection in inspectionsToCheck)
+        {
+            if (!(await IsHasChild(inspection.id)))
+            {
+                missedInspections.Add(inspection);
+            }
+        }
+
+        return missedInspections;
     }
     
     public async Task UpdateIsNotified(Guid inspectionId, bool isNotified)
@@ -153,7 +163,7 @@ public class InspectionRepository(ApplicationDbContext context) : IInspectionRep
         var inspection = await context.Inspections.FindAsync(inspectionId);
         if (inspection == null)
         {
-            throw new KeyNotFoundException("Inspection not found");
+            return;
         }
 
         inspection.isNotified = isNotified;

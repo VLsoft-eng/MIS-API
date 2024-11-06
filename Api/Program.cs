@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using Api.Extensions;
 using Api.Middleware;
 using Application.Abstractions.Auth;
@@ -97,7 +98,7 @@ builder.Services.AddQuartz(q =>
         options.ForJob("trigger1", "group1")
             .StartNow()
             .WithSimpleSchedule(x =>
-                x.WithIntervalInHours(5)
+                x.WithIntervalInSeconds(15)
                     .RepeatForever());
     });
 
@@ -151,6 +152,7 @@ using (var scope = app.Services.CreateScope())
 
 using (var scope = app.Services.CreateScope())
 {
+    Thread.Sleep(10000);
     var emailSender = scope.ServiceProvider.GetRequiredService<EmailSender>();
 }
 
