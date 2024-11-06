@@ -27,7 +27,7 @@ public class IcdService(IIcdRepository icdRepository, IIcdMapper icdMapper) : II
         if (name != null)
         {
             icds = icds.Where(i => i.сode.ToLower().Contains(name.ToLower()) ||
-                                   i.сode.ToLower().Contains(name.ToLower()))
+                                   i.name.ToLower().Contains(name.ToLower()))
                 .ToList();
         }
         
