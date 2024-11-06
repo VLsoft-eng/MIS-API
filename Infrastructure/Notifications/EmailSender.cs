@@ -50,7 +50,7 @@ public class EmailSender
         mailMessage.Subject = "Пропущенный осмотр";
         mailMessage.Body = notification.message;
 
-        using var smtpClient = new SmtpClient("localhost", 1025)
+        using var smtpClient = new SmtpClient("maildev", 1025)
         {
             EnableSsl = false
         };

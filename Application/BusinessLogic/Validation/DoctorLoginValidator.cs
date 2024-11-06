@@ -10,9 +10,7 @@ public class DoctorLoginValidator : AbstractValidator<DoctorLoginRequest>
         RuleFor(doctor => doctor.email)
             .NotEmpty().WithMessage("Email is required")
             .EmailAddress().WithMessage("Invalid email format");
-
         RuleFor(doctor => doctor.password)
             .NotEmpty().WithMessage("Password is required");
     }
-    
 }

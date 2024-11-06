@@ -4,8 +4,8 @@ using Application.Abstractions.Service;
 using Application.Dto;
 using Application.Exceptions;
 using Domain;
+using Domain.Enums;
 using FluentValidation;
-using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 
 namespace Application.BusinessLogic.Service;
@@ -79,6 +79,14 @@ public class InspectionService(
         if (!validation.IsValid)
         {
             throw new ValidationException(validation.Errors[0].ErrorMessage);
+        }
+
+        if (request.conclusion == Conclusion.Death)
+        {
+            if (await inspectionRepository.IsHasChild(inspectionId))
+            {
+                throw new ValidationException("You can set Death conclusion only on terminal inspections.");
+            }
         }
 
         await diagnosisService.DeleteDiagnosesByInspectionId(inspection.id);

@@ -9,7 +9,8 @@ public class InspectionCreateValidator : AbstractValidator<InspectionCreateReque
     public InspectionCreateValidator()
     {
         RuleFor(ins => ins.date)
-            .NotNull().WithMessage("Date is required.");
+            .NotNull().WithMessage("Date is required.")
+            .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Date must be in the past or now.");
         RuleFor(ins => ins.anamnesis)
             .NotNull().WithMessage("Anamnesis is required.")
             .Length(1, 5000).WithMessage("Anamnesis must have length between 1 and 5000.");
@@ -19,14 +20,26 @@ public class InspectionCreateValidator : AbstractValidator<InspectionCreateReque
         RuleFor(ins => ins.conclusion)
             .NotNull().WithMessage("Conclusion is required.")
             .IsInEnum().WithMessage("Invalid conclusion value.");
-        RuleFor(ins => ins.nextVisitDate) 
+        RuleFor(ins => ins.nextVisitDate)
             .Must(date => date == null)
-            .When(ins => ins.conclusion  == Conclusion.Death)
-            .WithMessage("The date of the next visit cannot be set if the patient dies.");
+            .When(ins => ins.conclusion != Conclusion.Disease)
+            .WithMessage("The date of the next visit cannot be set if conclusion is not disease.")
+            .GreaterThan(ins => ins.date).WithMessage("Next visit date must be greater than current inspection date.");
+        RuleFor(ins => ins.nextVisitDate)
+            .Must(date => date != null)
+            .When(ins => ins.conclusion == Conclusion.Disease)
+            .WithMessage("Next visit date is required if conclusion is disease.");
         RuleFor(ins => ins.deathDate)
             .Must(date => date == null)
             .When(ins => ins.conclusion != Conclusion.Death)
-            .WithMessage("The date of death cannot be set unless the patient is deceased.");
+            .WithMessage("Death date cannot be set if conclusion is not death.");
+        RuleFor(ins => ins.deathDate)
+            .LessThanOrEqualTo(ins => ins.date).WithMessage("Death date must be less than or equals to current inspection date.")
+            .When(ins => ins.deathDate != null);
+        RuleFor(ins => ins.deathDate)
+            .Must(x => x != null)
+            .When(ins => ins.conclusion == Conclusion.Death)
+            .WithMessage("Death date is required if conclusion is death");
         RuleFor(x => x.diagnoses)
             .NotNull()
             .WithMessage("Diagnoses are required.")

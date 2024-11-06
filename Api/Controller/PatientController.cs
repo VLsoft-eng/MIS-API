@@ -14,9 +14,9 @@ public class PatientController(IPatientService patientService) : ControllerBase
 {
     [Authorize]
     [HttpPost]
-    public async Task CreatePatient([FromBody] PatientCreateRequest request)
+    public async Task<Guid> CreatePatient([FromBody] PatientCreateRequest request)
     {
-        await patientService.Create(request);
+        return await patientService.Create(request);
     }
 
     [Authorize]

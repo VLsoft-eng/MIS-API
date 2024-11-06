@@ -105,7 +105,7 @@ public class InspectionRepository(ApplicationDbContext context) : IInspectionRep
     {
         return await context.Inspections
             .Include(i => i.previousInspection)
-            .AnyAsync(i => i.previousInspection.id != null && i.previousInspection.id == id);
+            .AnyAsync(i => i.previousInspection != null && i.previousInspection.id == id);
     }
 
     public async Task<List<Inspection>> GetChainByRoot(Guid rootId)
@@ -115,13 +115,13 @@ public class InspectionRepository(ApplicationDbContext context) : IInspectionRep
             .ToListAsync();
 
         var chain = new List<Inspection>();
-        var currentInspection = allInspections.FirstOrDefault(i => i.id == rootId);
-        
+        var currentInspection = allInspections.FirstOrDefault(i => i.previousInspection?.id == rootId);
+
         while (currentInspection != null)
         {
             chain.Add(currentInspection);
             currentInspection = allInspections
-                .FirstOrDefault(i => i.id == currentInspection.previousInspection?.id);
+                .FirstOrDefault(i => currentInspection.id == i.previousInspection?.id);
         }
 
         return chain;

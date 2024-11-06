@@ -4,6 +4,8 @@ using Application.Abstractions.Service;
 using Application.Dto;
 using Application.Exceptions;
 using Domain;
+using Domain.Enums;
+using FluentValidation;
 
 namespace Application.BusinessLogic.Service;
 
@@ -17,6 +19,11 @@ public class ReportService(
 {
     public async Task<IcdRootsReportDto> GetReport(DateTime start, DateTime end, List<Guid> icdRoots)
     {
+        if (start > end)
+        {
+            throw new ValidationException("Start must be less or equals than end");
+        }
+
         var diagnoses = await diagnosisRepository.GetAllMainDiagnoses();
         if (icdRoots.Any())
         {
@@ -65,18 +72,16 @@ public class ReportService(
 
             foreach (var inspection in patientInspections)
             {
-                var inspectionDiagnoses = diagnoses
-                    .Where(d => d.inspection.id == inspection.id)
-                    .ToList();
-
-                foreach (var diagnosis in inspectionDiagnoses)
+                var inspectionMainDiagnosis = diagnoses
+                    .First(d => 
+                        d.inspection.id == inspection.id && 
+                        d.diagnosisType == DiagnosisType.Main);
+                
+                var diagnosisIcdRoot = await icdRepository.GetRootByIcdId(inspectionMainDiagnosis.icd.id);
+                if (visitsByRoot.ContainsKey(diagnosisIcdRoot.id))
                 {
-                    var diagnosisIcdRoot = await icdRepository.GetRootByIcdId(diagnosis.icd.id);
-                    if (visitsByRoot.ContainsKey(diagnosisIcdRoot.id))
-                    {
-                        visitsByRoot[diagnosisIcdRoot.id]++;
-                        totalVisitsByRoot[diagnosisIcdRoot.id]++;
-                    }
+                    visitsByRoot[diagnosisIcdRoot.id]++;
+                    totalVisitsByRoot[diagnosisIcdRoot.id]++;
                 }
             }
 

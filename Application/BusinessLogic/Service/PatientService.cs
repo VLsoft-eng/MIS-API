@@ -68,7 +68,7 @@ public class PatientService(
             throw new ValidationException(inspectionValidation.Errors[0].ErrorMessage);
         }
 
-        Inspection previousInspection = null;
+        Inspection? previousInspection = null;
         if (request.previousInspectionId != null)
         {
             var previousInspectionId = request.previousInspectionId;
@@ -77,6 +77,13 @@ public class PatientService(
             {
                 throw new InspectionNotFoundException();
             }
+
+            if (previousInspection.date > request.date)
+            {
+                throw new ValidationException("Inspection can't be before previous inspection");
+            }
+            
+            
         }
 
         if (request.consultations != null)
@@ -101,8 +108,28 @@ public class PatientService(
                     throw new SpecialityNotFoundException();
                 }
             }
+
+            for (int i = 0 ; i < request.consultations.Count; i++) 
+            {
+                for (int j = i + 1; j < request.consultations.Count - 1; j++)
+                {
+                    if (request.consultations[i].specialityId == request.consultations[j].specialityId)
+                    {
+                        throw new ConsultationDuplicateException();
+                    }
+                }
+            }
         }
 
+        var patientInspections = await inspectionRepository.GetPatientInspections(patientId);
+        foreach (var patientInspection in patientInspections)
+        {
+            if (patientInspection.conclusion == Conclusion.Death)
+            {
+                throw new ValidationException("Patient can't have new inspections if he already die.");
+            }
+        } 
+        
         var doctor = await doctorRepository.GetById(doctorId);
 
         Inspection inspection = inspectionMapper.ToEntity(request, doctor, patient, previousInspection);
