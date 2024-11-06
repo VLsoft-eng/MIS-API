@@ -96,5 +96,11 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             await httpContext.Response.WriteAsJsonAsync(error);
         }
-}
+        catch (ConsultationDuplicateException e)
+        {
+            var error = new ErrorResponse(StatusCodes.Status400BadRequest, e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await httpContext.Response.WriteAsJsonAsync(error);
+        }
+    }
 }
