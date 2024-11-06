@@ -82,8 +82,11 @@ public class PatientService(
             {
                 throw new ValidationException("Inspection can't be before previous inspection");
             }
-            
-            
+
+            if (await inspectionRepository.IsHasChild(previousInspection.id))
+            {
+                throw new ValidationException("Inspection can have only one child.");
+            }
         }
 
         if (request.consultations != null)
