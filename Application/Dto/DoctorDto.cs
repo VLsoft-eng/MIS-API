@@ -9,5 +9,4 @@ public record DoctorDto(
     DateTime birthday,
     Gender gender,
     string email,
-    string phone
-    );
+    string phone);
