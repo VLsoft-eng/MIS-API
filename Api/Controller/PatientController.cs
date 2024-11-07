@@ -70,5 +70,4 @@ public class PatientController(IPatientService patientService) : ControllerBase
         return await patientService.GetPatientsByParams(name, conclusions, sorting, scheduledVisits, onlyMine, page,
             size, doctorId);
     }
-    
 }

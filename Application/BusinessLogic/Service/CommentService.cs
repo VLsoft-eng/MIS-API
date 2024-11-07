@@ -61,26 +61,21 @@ public class CommentService(
             throw new ValidationException(validation.Errors[0].ErrorMessage);
         }
 
-        Comment? parentComment = null;
-
-        if (request.parentId != null)
-        {
-            parentComment = await commentRepository.GetById(request.parentId.Value);
-            if (parentComment == null)
-            {
-                throw new CommentNotFoundException("Parent comment not found.");
-            }
-
-            if (parentComment.consultation.id != consultationId)
-            {
-                throw new CommentNotFoundException("Parent comment not found.");
-            }
-        }
-
         var doctor = await doctorRepository.GetById(doctorId);
         if (doctor?.speciality.id != consultation.speciality.id)
         {
             throw new DoesntHaveRightsException();
+        }
+
+        var parentComment = await commentRepository.GetById(request.parentId);
+        if (parentComment == null)
+        {
+            throw new CommentNotFoundException("Parent comment not found.");
+        }
+
+        if (parentComment.consultation.id != consultationId)
+        {
+            throw new CommentNotFoundException("Parent comment not found.");
         }
 
         Comment comment = commentMapper.ToEntity(request, doctor, consultation, parentComment);
