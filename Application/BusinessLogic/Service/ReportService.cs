@@ -58,6 +58,7 @@ public class ReportService(
             .ToList();
 
         var patients = inspectionsInInterval.Select(i => i.patient).Distinct().ToList();
+        patients = patients.OrderBy(p => p.name).ToList();
 
         var totalVisitsByRoot = icdRoots.ToDictionary(root => root, root => 0);
         var reportData = new List<IcdRootsReportRecordDto>();
