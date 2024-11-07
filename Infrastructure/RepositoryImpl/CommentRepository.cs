@@ -22,6 +22,8 @@ public class CommentRepository(ApplicationDbContext context) : ICommentRepositor
     {
         return await context.Comments
             .Include(c => c.parent)
+            .Include(c => c.author)
+            .Include(c => c.consultation)
             .FirstOrDefaultAsync(c => c.id == commentId);
     }
 

@@ -18,12 +18,18 @@ public class CommentService(
     IDoctorMapper doctorMapper)
     : ICommentService
 {
-    public async Task UpdateComment(Guid commentId, CommentEditRequest request)
+    public async Task UpdateComment(Guid commentId, Guid doctorId, CommentEditRequest request)
     {
         var comment = await commentRepository.GetById(commentId);
         if (comment == null)
         {
             throw new CommentNotFoundException();
+        }
+
+        var doctor = await doctorRepository.GetById(doctorId);
+        if (doctor.id != comment.author.id)
+        {
+            throw new DoesntHaveRightsException();
         }
 
         if (comment.content == request.content)
@@ -61,6 +67,11 @@ public class CommentService(
         {
             parentComment = await commentRepository.GetById(request.parentId.Value);
             if (parentComment == null)
+            {
+                throw new CommentNotFoundException("Parent comment not found.");
+            }
+
+            if (parentComment.consultation.id != consultationId)
             {
                 throw new CommentNotFoundException("Parent comment not found.");
             }

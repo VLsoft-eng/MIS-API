@@ -19,7 +19,8 @@ public class ConsultationController(
     [HttpPut("comment/{id}")]
     public async Task EditComment(Guid id, [FromBody] CommentEditRequest request)
     {
-        await commentService.UpdateComment(id, request);
+        Guid doctorId = Guid.Parse(HttpContext.GetUserId());
+        await commentService.UpdateComment(id, doctorId,request);
     }
 
     [Authorize]
