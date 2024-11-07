@@ -55,7 +55,7 @@ public class CommentService(
             throw new ValidationException(validation.Errors[0].ErrorMessage);
         }
 
-        Comment parentComment = null;
+        Comment? parentComment = null;
 
         if (request.parentId != null)
         {
@@ -67,6 +67,10 @@ public class CommentService(
         }
 
         var doctor = await doctorRepository.GetById(doctorId);
+        if (doctor?.speciality.id != consultation.speciality.id)
+        {
+            throw new DoesntHaveRightsException();
+        }
 
         Comment comment = commentMapper.ToEntity(request, doctor, consultation, parentComment);
         await commentRepository.Create(comment);

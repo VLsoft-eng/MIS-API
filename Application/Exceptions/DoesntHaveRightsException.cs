@@ -3,7 +3,7 @@ namespace Application.Exceptions;
 public class DoesntHaveRightsException : Exception
 {
     public DoesntHaveRightsException()
-        : base("User doesn't have editing rights (not the inspection author")
+        : base("Doesn't have creating/editing rights in current resource. ")
     {
     }
 

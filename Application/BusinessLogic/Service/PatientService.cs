@@ -259,7 +259,7 @@ public class PatientService(
             inspectionFullDtos.Add(inspectionFullDto);
         }
 
-        var overAllInspectionsCount = pagedInspections.Count;
+        var overAllInspectionsCount = inspections.Count;
         var totalPages = (int)Math.Ceiling((double)overAllInspectionsCount / size);
         
         if (page > totalPages)

@@ -102,5 +102,11 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             await httpContext.Response.WriteAsJsonAsync(error);
         }
+        catch (DoesntHaveRightsException e)
+        {
+            var error = new ErrorResponse(StatusCodes.Status403Forbidden,e.Message);
+            httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await httpContext.Response.WriteAsJsonAsync(error);
+        }
     }
 }

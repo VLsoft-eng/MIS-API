@@ -29,8 +29,7 @@ public sealed class ApplicationDbContext : DbContext
             .IsUnique();
 
         modelBuilder.Entity<Doctor>()
-            .HasIndex(doctor => doctor.phone)
-            .IsUnique();
+            .HasIndex(doctor => doctor.phone);
         
         modelBuilder.Entity<Speciality>()
             .Property(s => s.id)
