@@ -10,7 +10,7 @@ namespace Api.Controller;
 
 [ApiController]
 [Route("api/patient")]
-public class PatientController(IPatientService patientService) : ControllerBase
+public class PatientController(IPatientService patientService, IInspectionService inspectionService) : ControllerBase
 {
     [Authorize]
     [HttpPost]
@@ -32,7 +32,7 @@ public class PatientController(IPatientService patientService) : ControllerBase
         [FromBody] InspectionCreateRequest request)
     {
         Guid doctorId = Guid.Parse(HttpContext.GetUserId());
-        return await patientService.CreatePatientsInspection(id, doctorId, request);
+        return await inspectionService.CreateInspection(id, doctorId, request);
     }
 
     [Authorize]

@@ -14,18 +14,9 @@ public class PatientService(
     IPatientRepository patientRepository,
     IPatientMapper patientMapper,
     IValidator<PatientCreateRequest> patientCreateValidator,
-    IValidator<InspectionCreateRequest> inspectionCreateValidator,
-    IValidator<ConsultationCreateRequest> consultationCreateValidator,
-    IValidator<InspectionCommentCreateRequest> inspectionCreateCommentValidator,
     IIcdRepository icdRepository,
-    ISpecialityRepository specialityRepository,
-    ICommentRepository commentRepository,
     IInspectionRepository inspectionRepository,
-    IConsultationRepository consultationRepository,
     IInspectionMapper inspectionMapper,
-    IDoctorRepository doctorRepository,
-    ICommentMapper commentMapper,
-    IConsultationMapper consultationMapper,
     IDiagnosisService diagnosisService,
     IDiagnosisRepository diagnosisRepository)
     : IPatientService
@@ -52,119 +43,6 @@ public class PatientService(
 
         var patientDto = patientMapper.ToDto(patient);
         return patientDto;
-    }
-
-    public async Task<Guid> CreatePatientsInspection(Guid patientId, Guid doctorId, InspectionCreateRequest request)
-    {
-        var patient = await patientRepository.GetById(patientId);
-        if (patient == null)
-        {
-            throw new PatientNotFoundException();
-        }
-
-        var inspectionValidation = await inspectionCreateValidator.ValidateAsync(request);
-        if (!inspectionValidation.IsValid)
-        {
-            throw new ValidationException(inspectionValidation.Errors[0].ErrorMessage);
-        }
-
-        Inspection? previousInspection = null;
-        if (request.previousInspectionId != null)
-        {
-            var previousInspectionId = request.previousInspectionId;
-             previousInspection = await inspectionRepository.GetById(previousInspectionId.Value);
-            if (previousInspection == null)
-            {
-                throw new InspectionNotFoundException();
-            }
-
-            if (previousInspection.date > request.date)
-            {
-                throw new ValidationException("Inspection can't be before previous inspection");
-            }
-
-            if (await inspectionRepository.IsHasChild(previousInspection.id))
-            {
-                throw new ValidationException("Inspection can have only one child.");
-            }
-        }
-
-        if (request.consultations != null)
-        {
-            foreach (var consultation in request.consultations)
-            {
-                var consultationValidation = await consultationCreateValidator.ValidateAsync(consultation);
-                if (!consultationValidation.IsValid)
-                {
-                    throw new ValidationException(consultationValidation.Errors[0].ErrorMessage);
-                }
-
-                var commentValidation = await inspectionCreateCommentValidator.ValidateAsync(consultation.comment);
-                if (!commentValidation.IsValid)
-                {
-                    throw new ValidationException(commentValidation.Errors[0].ErrorMessage);
-                }
-
-                var speciality = await specialityRepository.GetById(consultation.specialityId);
-                if (speciality == null)
-                {
-                    throw new SpecialityNotFoundException();
-                }
-            }
-
-            for (int i = 0 ; i < request.consultations.Count; i++) 
-            {
-                for (int j = i + 1; j < request.consultations.Count - 1; j++)
-                {
-                    if (request.consultations[i].specialityId == request.consultations[j].specialityId)
-                    {
-                        throw new ConsultationDuplicateException();
-                    }
-                }
-            }
-        }
-
-        var patientInspections = await inspectionRepository.GetPatientInspections(patientId);
-        foreach (var patientInspection in patientInspections)
-        {
-            if (patientInspection.conclusion == Conclusion.Death)
-            {
-                throw new ValidationException("Patient can't have new inspections if he already die.");
-            }
-        } 
-        
-        var doctor = await doctorRepository.GetById(doctorId);
-
-        Inspection inspection = inspectionMapper.ToEntity(request, doctor, patient, previousInspection);
-
-        await inspectionRepository.Create(inspection);
-
-        foreach (var diagnosis in request.diagnoses)
-        {
-            var icd = await icdRepository.GetById(diagnosis.icdDiagnosisId);
-
-            if (icd == null)
-            {
-                throw new IcdNotFoundException();
-            }
-            
-            await diagnosisService.CreateDiagnosis(diagnosis, inspection, icd);
-        }
-
-        if (request.consultations != null)
-        {
-            foreach (var consultationRequest in request.consultations)
-            {
-                Speciality speciality = await specialityRepository.GetById(consultationRequest.specialityId);
-                Consultation consultation = consultationMapper.ToEntity(speciality, inspection);
-                Comment comment = commentMapper.ToEntity(consultationRequest.comment, doctor, consultation, null);
-
-                await consultationRepository.Create(consultation);
-                await commentRepository.Create(comment);
-            }
-        }
-
-        return inspection.id;
     }
     
     public async Task<List<InspectionShortDto>> SearchPatientInspectionsByParams(Guid patientId, string? request)
