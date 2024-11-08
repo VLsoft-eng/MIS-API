@@ -192,6 +192,14 @@ public class InspectionService(
         
         inspections = inspections.Where(i => inspectionIds.Contains(i.id)).ToList();
         
+        var overAllInspectionsCount = inspections.Count;
+        var totalPages = (overAllInspectionsCount + size - 1) / size;
+
+        if (page > totalPages)
+        {
+            throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
+        }
+        
         var pagedInspections = inspections
             .Skip((page - 1) * size)
             .Take(size)
@@ -207,14 +215,6 @@ public class InspectionService(
             var inspectionFullDto =
                 inspectionMapper.ToInspectionFullDto(inspection, mainDiagnosesDto, hasChain, hasNested);
             inspectionFullDtos.Add(inspectionFullDto);
-        }
-
-        var overAllInspectionsCount = inspections.Count;
-        var totalPages = (int)Math.Ceiling((double)overAllInspectionsCount / size);
-
-        if (page > totalPages)
-        {
-            throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
         }
         
         var pageInfo = new PageInfoDto(size, totalPages, page);

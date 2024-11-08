@@ -24,14 +24,19 @@ public class SpecialityService(ISpecialityRepository specialityRepository, ISpec
         }
 
         var overAllSpecialities = specialities.Count;
-        var totalPages = (int)Math.Ceiling((double)overAllSpecialities / size);
+        var totalPages = (overAllSpecialities + size - 1) / size;
         
         if (page > totalPages)
         {
             throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
         }
         
-        var specialitiesDtos = specialityMapper.ToDto(specialities);
+        var pagedSpecialities = specialities
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToList();
+        
+        var specialitiesDtos = specialityMapper.ToDto(pagedSpecialities);
         var pageInfoDto = new PageInfoDto(size, totalPages, page);
 
         return new SpecialitiesPagedListDto(specialitiesDtos, pageInfoDto);

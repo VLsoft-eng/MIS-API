@@ -242,6 +242,14 @@ public class PatientService(
                 .ToList();
         }
         
+        var overAllInspectionsCount = inspections.Count;
+        var totalPages = (overAllInspectionsCount + size - 1) / size;
+        
+        if (page > totalPages)
+        {
+            throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
+        }
+        
         var pagedInspections = inspections
             .Skip((page - 1) * size)
             .Take(size)
@@ -257,14 +265,6 @@ public class PatientService(
             var inspectionFullDto =
                 inspectionMapper.ToInspectionFullDto(inspection, mainDiagnosisDto, hasChain, hasNested);
             inspectionFullDtos.Add(inspectionFullDto);
-        }
-
-        var overAllInspectionsCount = inspections.Count;
-        var totalPages = (int)Math.Ceiling((double)overAllInspectionsCount / size);
-        
-        if (page > totalPages)
-        {
-            throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
         }
         
         var pageInfo = new PageInfoDto(size, totalPages, page);
@@ -322,7 +322,7 @@ public class PatientService(
         }
         
         var overAllPatientsCount = patients.Count;
-        var totalPages = (int)Math.Ceiling((double)overAllPatientsCount / size);
+        var totalPages = (overAllPatientsCount + size - 1) / size;
         
         if (page > totalPages)
         {

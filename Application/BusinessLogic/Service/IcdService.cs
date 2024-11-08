@@ -32,17 +32,17 @@ public class IcdService(IIcdRepository icdRepository, IIcdMapper icdMapper) : II
         }
         
         var overAllIcds = icds.Count;
-        var pagedIcds = icds
-            .Skip((page - 1) * size)
-            .Take(size)
-            .ToList();
-        
-        var totalPages = (int)Math.Ceiling((double)overAllIcds / size);
+        var totalPages = (overAllIcds + size - 1) / size;
         
         if (page > totalPages)
         {
             throw new InvalidPaginationParamsException("Page must be smaller or equal page count.");
         }
+        
+        var pagedIcds = icds
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToList();
         
         var icdsDtos = icdMapper.ToDto(pagedIcds);
         var pageInfoDto = new PageInfoDto(size, totalPages, page);
